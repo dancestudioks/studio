@@ -64,7 +64,7 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
 </style>
 </head>
 <body>
-<input type="hidden" id="apiUrlField" value="https://script.google.com/macros/s/AKfycbxipkU5-T-qCIcrjdRNHvHe8G0IhP0CAILa6mWtdLA5eEhbvcfzJyMRoLj9-dyUW-xgRw/exec">
+<input type="hidden" id="apiUrlField" value="https://script.google.com/macros/s/AKfycbw-lmymqW2LjhVTdn_nyYIDjQYNTspP8pJ2N4QRV1hdZt7sIOUDoqkKWqizG-YY2gy4cQ/exec">
 
 <div class="header">
   <div>
@@ -111,7 +111,7 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
       <div class="hint">Ваш 4-значный PIN-код (только 4 цифры)</div>
       <button type="button" onclick="doLogin(false)">Войти</button>
       <button type="button" class="btn-o" onclick="switchAuth(true)">Создать личный кабинет</button>
-         <div id="authErr" style="color:var(--d);font-size:13px;margin-top:8px"></div>
+      <div id="authErr" style="color:var(--d);font-size:13px;margin-top:8px"></div>
     </div>
 
     <div id="regBox" class="card hidden">
@@ -417,6 +417,7 @@ var isBusy = false;
 var groupByMode = 'date';
 var admGroupByMode = 'date';
 var pickedClientsMap = {};
+var guestLoaded = false;
 
 window.onload = function() {
   var saved = localStorage.getItem('studio_creds');
@@ -436,8 +437,6 @@ function cleanDigits(el) { el.value = el.value.replace(/\D/g, ''); }
 function normStr(s) { return String(s || '').trim().toLowerCase().replace(/ё/g, 'е'); }
 function togglePin(id) { var el = document.getElementById(id); el.type = (el.type === 'password') ? 'text' : 'password'; }
 function switchAuth(isReg) { document.getElementById('loginBox').classList.toggle('hidden', isReg); document.getElementById('regBox').classList.toggle('hidden', !isReg); }
-
-var guestLoaded = false;
 
 function showGuestSection(section, btn) {
   document.querySelectorAll('#guestNav .nav-item').forEach(function(b) { b.classList.remove('active'); });
@@ -570,7 +569,7 @@ function api(params, cb) {
 
 function openCabinetUI() {
   document.getElementById('authScreen').classList.add('hidden');
-document.getElementById('guestNav').classList.add('hidden');
+  document.getElementById('guestNav').classList.add('hidden');
   document.getElementById('logoutBtn').classList.remove('hidden');
   document.getElementById('logoutBtn').textContent = 'Выйти';
   var rName = state.user.role === 'admin' ? 'Администратор' : (state.user.role === 'teacher' ? 'Преподаватель' : 'Ученик');
@@ -648,8 +647,9 @@ function addOpt(select, val, text) {
 
 function fmtDate(s) {
   var strVal = String(s || '').trim();
-  var m = strVal.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (m) return m + '.' + m + '.' + m;
+  if (/^\d{4}-\d{2}-\d{2}/.test(strVal)) {
+    return strVal.slice(0, 10).split('-').reverse().join('.');
+  }
   return strVal;
 }
 
@@ -732,7 +732,7 @@ function openClientQuickModal(phoneOrName) {
   body.appendChild(top);
 
   var userPays = (state.payments || []).filter(function(p) { return p.phone === c.phone && p.status === 'confirmed'; });
-  var lastPay = userPays.length ? userPays[userPays.length - 1] : null;
+  var lastPay = userPays.length ? userPays.slice(-1).pop() : null;
 
   var infoBox = el('div', 'attendees-box');
   infoBox.style.fontSize = '13.5px'; infoBox.style.lineHeight = '1.65';
@@ -1079,7 +1079,7 @@ function checkNotifications() {
   var dot = document.getElementById('notifDot');
   if (dot) dot.classList.toggle('hidden', unread.length === 0);
   if (unread.length) {
-    var latest = unread[0];
+    var latest = unread.slice(0, 1).pop();
     var nb = el('div', 'alert-box', '🔔 ' + latest.text + (unread.length > 1 ? ' (и ещё ' + (unread.length - 1) + ' в Кабинете)' : ''));
     nb.style.background = '#ede9fe'; nb.style.borderLeftColor = 'var(--p)'; nb.style.color = 'var(--t)';
     box.appendChild(nb);
@@ -1633,6 +1633,7 @@ function renderAdminAll() {
   fillReportMonths();
   renderAnalytics();
 }
+
 function renderAdminSched() {
   if (admSchedViewMode === 'grid') {
     renderWeekGrid('admSchedGrid', getNext7DaysSchedule());
@@ -1655,7 +1656,6 @@ function renderAdminSched() {
     schedBox.appendChild(card);
   });
 }
-
 function saveScheduleItem() {
   var p = { action: 'save_schedule', classId: document.getElementById('editClassId').value, day: document.getElementById('sDay').value, date: document.getElementById('sDate').value, time: document.getElementById('sTime').value, location: document.getElementById('sLoc').value, title: document.getElementById('sDirSelect').value, teacher: document.getElementById('sTeacherSelect').value };
   if (!p.title || !p.teacher) return alert('Заполните направление и педагога');
@@ -1719,13 +1719,13 @@ function adminManualVisit() {
     action: 'confirm_visit_batch',
     phones: phones.join(','),
     names: names.join('|'),
-    classId: sVal,
-    date: sVal,
-    time: sVal,
-    day: sVal,
-    title: sVal,
-    teacher: sVal,
-    location: sVal
+    classId: sVal.shift() || '',
+    date: sVal.shift() || '',
+    time: sVal.shift() || '',
+    day: sVal.shift() || '',
+    title: sVal.shift() || '',
+    teacher: sVal.shift() || '',
+    location: sVal.shift() || ''
   }, function(d) {
     alert(d.message);
     pickedClientsMap = {};
@@ -1733,13 +1733,13 @@ function adminManualVisit() {
     doLogin(true);
   });
 }
+
 function confirmVisit(vId, phone, date, time, day, title) { api({ action: 'confirm_visit', visitId: vId, phone: phone, date: date, time: time, day: day, title: title }, function(d) { if (d.status === 'error') alert(d.message); doLogin(true); }); }
 function adminCancelVisit(vId) { if (confirm('Отменить запись ученика (не явился на урок)? Занятие с баланса списано не будет.')) api({ action: 'admin_cancel_visit', visitId: vId }, function(d) { alert(d.message); doLogin(true); }); }
 function confirmInd(indId) { api({ action: 'confirm_ind', indId: indId }, function(d) { alert(d.message); doLogin(true); }); }
 function rejectInd(indId) { if (confirm('Отклонить заявку на индивидуальное занятие?')) api({ action: 'reject_ind', indId: indId }, function(d) { alert(d.message); doLogin(true); }); }
 function confirmPay(payId) { api({ action: 'confirm_payment', payId: payId }, function(d) { alert(d.message); doLogin(true); }); }
 function rejectPay(payId) { if (confirm('Отклонить эту оплату? Абонемент начислен не будет.')) api({ action: 'reject_payment', payId: payId }, function(d) { alert(d.message); doLogin(true); }); }
-
 function extendClientSub(phone) {
   var inp = document.getElementById('admExtendDays');
   var days = Number(inp ? inp.value : 0);
@@ -1814,8 +1814,7 @@ function fillReportMonths() {
   var prevVal = sel.value;
   sel.innerHTML = '';
   sorted.forEach(function(ym) {
-    var parts = ym.split('-');
-    var labelYm = parts.length === 2 ? (parts + '.' + parts) : ym;
+    var labelYm = ym.indexOf('-') !== -1 ? ym.split('-').reverse().join('.') : ym;
     addOpt(sel, ym, (ym === curMonth ? 'Текущий месяц: ' : 'Архив: ') + labelYm);
   });
   if (prevVal && monthsSet[prevVal]) sel.value = prevVal;
@@ -1824,8 +1823,7 @@ function fillReportMonths() {
 function renderAnalytics() {
   var sel = document.getElementById('admReportMonth');
   var ym = (sel && sel.value) ? sel.value : toYMD(new Date()).slice(0, 7);
-  var parts = ym.split('-');
-  var labelYm = parts.length === 2 ? (parts + '.' + parts) : ym;
+  var labelYm = ym.indexOf('-') !== -1 ? ym.split('-').reverse().join('.') : ym;
 
   var visited = state.visits.filter(function(v) { return v.status === 'visited' && v.date && v.date.indexOf(ym) === 0; });
   var monthPays = state.payments.filter(function(p) { return p.status === 'confirmed' && p.date && p.date.indexOf(ym) === 0; });
