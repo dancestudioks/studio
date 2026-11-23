@@ -9,7 +9,7 @@
 <style>
 :root{--p:#6c5ce7;--bg:#f4f5f9;--c:#fff;--t:#2d3436;--m:#636e72;--s:#00b894;--d:#d63031}
 *{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-body{margin:0;background:var(--bg);color:var(--t);padding-bottom:84px}
+body{margin:0;background:var(--bg);color:var(--t);padding-bottom:92px}
 .container{max-width:600px;margin:0 auto;padding:14px}
 .header{background:var(--p);color:#fff;padding:16px;border-radius:0 0 20px 20px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
 .card{background:var(--c);border-radius:16px;padding:15px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
@@ -24,17 +24,20 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
 .hint{font-size:11px;color:var(--m);margin-top:3px;padding-left:2px;line-height:1.3}
 .attendees-box{background:#f8f9fa;border-radius:10px;padding:8px 10px;margin:8px 0;border:1px solid #edf2f7}
 .attendee-chip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid #dfe6e9;border-radius:16px;padding:3px 9px 3px 4px;font-size:12px;margin:3px 4px 3px 0;color:var(--t)}
+.clickable-client{cursor:pointer;text-decoration:underline dotted var(--p)}
 .mini-av{width:22px;height:22px;border-radius:50%;object-fit:cover;background:#ede9fe;color:var(--p);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
 .alert-box{background:#fff3cd;border-left:4px solid #ffc107;padding:11px 12px;border-radius:10px;margin-bottom:10px;font-size:13px;color:#856404;line-height:1.4}
 .alert-danger{background:#ffe6e6;border-left:4px solid var(--d);color:#721c24}
-.nav-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #dfe6e9;display:flex;justify-content:space-around;padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:100}
-.nav-item{background:none;border:none;color:var(--m);font-size:11px;margin:0;padding:4px;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative}
+.nav-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #dfe6e9;display:flex;justify-content:space-between;padding:8px 4px calc(8px + env(safe-area-inset-bottom));z-index:100;gap:2px}
+.nav-item{background:none;border:none;color:var(--m);font-size:12.5px;margin:0;padding:4px 2px;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.3px}
 .nav-item.active{color:var(--p);font-weight:700}
 .nav-dot{position:absolute;top:2px;right:14px;width:8px;height:8px;background:var(--d);border-radius:50%}
+@media(max-width:360px){.nav-item{font-size:11px;letter-spacing:-0.4px}}
 .day-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px}
 .day-tab{width:auto;margin:0;padding:7px 13px;background:#fff;color:var(--t);border:1px solid #dfe6e9;border-radius:20px;font-size:13px;white-space:nowrap}
 .day-tab.active{background:var(--p);color:#fff;border-color:var(--p)}
 .avatar{width:54px;height:54px;border-radius:50%;object-fit:cover;background:#dfe6e9;display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--p);font-size:20px;flex-shrink:0}
+.avatar-lg{width:92px;height:92px;border-radius:50%;object-fit:cover;background:#ede9fe;display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--p);font-size:34px;flex-shrink:0;border:2px solid var(--p)}
 .pin-box{display:flex;gap:8px;margin-top:8px}.pin-box input{margin-top:0;flex:1}.pin-box button{margin-top:0;width:50px;background:#dfe6e9;color:#2d3436}
 .sub-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
 .sub-tab{flex:1;margin:0;padding:8px 6px;font-size:12px;background:#e2e8f0;color:var(--t);min-width:75px}
@@ -48,20 +51,20 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
 .tariff-term{font-size:11px;color:var(--m);margin-top:3px;line-height:1.3}
 .week-grid{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px}
 .week-col{min-width:196px;flex:1;background:#eef0f8;border-radius:14px;padding:10px}
-.week-col-head{font-weight:700;font-size:13px;color:var(--p);text-align:center;padding-bottom:6px;border-bottom:1px solid #dfe6e9;margin-bottom:8px}
-.grid-lesson{border-radius:11px;padding:9px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer;border:1px solid transparent;transition:transform 0.1s}
-.grid-lesson:active{transform:scale(0.98)}
+.week-col-head{font-weight:700;font-size:14px;color:var(--p);text-align:center;padding-bottom:6px;border-bottom:1px solid #dfe6e9;margin-bottom:8px}
+.grid-lesson{border-radius:11px;padding:11px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer;border:1px solid transparent;border-left-width:5px}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:14px}
 .modal-card{background:#fff;border-radius:18px;padding:16px;width:100%;max-width:460px;max-height:85vh;overflow-y:auto}
-.excel-search-wrap{position:relative;margin-top:8px}
+.excel-search-wrap{margin-top:8px}
 .excel-search-wrap input{margin-top:0}
-.excel-dropdown{position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid var(--p);border-top:none;border-radius:0 0 12px 12px;max-height:220px;overflow-y:auto;z-index:150;box-shadow:0 6px 16px rgba(0,0,0,0.12)}
-.excel-opt{padding:9px 12px;font-size:14px;border-bottom:1px solid #f1f2f6;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
-.excel-opt:hover{background:#ede9fe;color:var(--p);font-weight:600}
+.excel-dropdown{background:#fff;border:1px solid var(--p);border-top:none;border-radius:0 0 12px 12px;max-height:220px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+.excel-opt{padding:9px 12px;font-size:14px;border-bottom:1px solid #f1f2f6;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.excel-opt:hover{background:#f8f7ff}
+.excel-chk{width:20px;height:20px;margin:0;accent-color:var(--p);flex-shrink:0}
 </style>
 </head>
 <body>
-<input type="hidden" id="apiUrlField" value="https://script.google.com/macros/s/AKfycbzme-oUm60S5Y33knJezx9A1K5FCwgldg5205VEWIGchoIT6JsmvtDVFKKuio_f6niYRQ/exec">
+<input type="hidden" id="apiUrlField" value="https://script.google.com/macros/s/AKfycbxipkU5-T-qCIcrjdRNHvHe8G0IhP0CAILa6mWtdLA5eEhbvcfzJyMRoLj9-dyUW-xgRw/exec">
 
 <div class="header">
   <div>
@@ -83,6 +86,16 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
   </div>
 </div>
 
+<div id="clientQuickModal" class="modal-bg hidden" onclick="if(event.target===this)closeClientQuickModal()">
+  <div class="modal-card">
+    <div class="row">
+      <strong style="font-size:16px">Карточка ученика</strong>
+      <button type="button" class="btn-o btn-sm" onclick="closeClientQuickModal()">✕</button>
+    </div>
+    <div id="cqBody" style="margin-top:10px"></div>
+  </div>
+</div>
+
 <div class="container">
   <div id="loader" class="card hidden" style="text-align:center;color:var(--p);font-weight:600">Обновление данных...</div>
 
@@ -98,6 +111,7 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
       <div class="hint">Ваш 4-значный PIN-код (только 4 цифры)</div>
       <button type="button" onclick="doLogin(false)">Войти</button>
       <button type="button" class="btn-o" onclick="switchAuth(true)">Создать личный кабинет</button>
+      <button type="button" class="btn-s" style="margin-top:8px" onclick="enterGuestMode()">👀 Расписание и абонементы без входа</button>
       <div id="authErr" style="color:var(--d);font-size:13px;margin-top:8px"></div>
     </div>
 
@@ -113,7 +127,7 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
         <option value="F">💃 Девочка (Ж)</option>
         <option value="M">🕺 Мальчик (М)</option>
       </select>
-      <div class="hint">Обязательно. Помогает видеть баланс партнёров и партнёрш в группе</div>
+      <div class="hint">Обязательно. Помогает видеть баланс мальчиков и девочек в группе</div>
       <input type="text" id="rVk" placeholder="Ссылка на профиль ВКонтакте">
       <div class="hint">По желанию. Например: https://vk.com</div>
 
@@ -178,10 +192,10 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
     </div>
 
     <div id="tabTariffs" class="hidden">
-      <h3>Купить абонемент</h3>
-      <div class="hint" style="margin-bottom:10px">После перевода оплаты нажмите кнопку «Оплатил(а)» напротив нужного тарифа. Абонемент активируется после проверки администратором и начнет действовать со дня первого посещения.</div>
+      <h3>Абонементы студии</h3>
+      <div id="tariffsGuestHint" class="hint" style="margin-bottom:10px">После перевода оплаты нажмите кнопку «Оплатил(а)» напротив нужного тарифа. Абонемент активируется после проверки администратором и начнет действовать со дня первого посещения.</div>
       <div id="tariffsList"></div>
-      <h4>Мои оплаты</h4>
+      <h4 id="myPaymentsTitle">Мои оплаты</h4>
       <div id="myPaymentsList"></div>
     </div>
     <div id="tabProfile" class="hidden">
@@ -234,6 +248,9 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
 
       <h4>История моих посещений</h4>
       <div id="myHistoryList"></div>
+
+      <h4>Журнал событий и изменений</h4>
+      <div id="myLogList"></div>
     </div>
   </div>
 
@@ -242,16 +259,15 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
 
     <div id="admTabVisits">
       <div class="card">
-        <h4 style="margin-top:0">Отметить посещение ученика вручную</h4>
+        <h4 style="margin-top:0">Отметить посещение учеников вручную</h4>
         <div class="excel-search-wrap">
           <input type="text" id="admClientSearch" onfocus="openExcelDropdown()" oninput="filterAdminClients(true)" placeholder="🔍 Поиск ученика по фамилии или имени" autocomplete="off">
-          <input type="hidden" id="admManualClient" value="">
           <div id="admClientDropdown" class="excel-dropdown hidden"></div>
         </div>
-        <div class="hint">Начните вводить буквы — выпадающий список сразу отфильтруется</div>
+        <div id="admPickedCounter" class="hint" style="color:var(--p);font-weight:600;margin-top:6px">Отмечено учеников: 0</div>
         <select id="admManualClass"></select>
         <div class="hint">Выберите занятие</div>
-        <button type="button" class="btn-s" onclick="adminManualVisit()">Поставить посещение (списать 1)</button>
+        <button type="button" class="btn-s" onclick="adminManualVisit()">Подтвердить посещение выбранных (списать 1)</button>
       </div>
       <h4>Запланированные групповые визиты</h4>
       <div id="admBookedList"></div>
@@ -374,6 +390,12 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
   <button type="button" class="nav-item" onclick="showClientTab('tabProfile', this)"><span id="notifDot" class="nav-dot hidden"></span>👤<span>Кабинет</span></button>
 </div>
 
+<div id="guestNav" class="nav-bar hidden">
+  <button type="button" class="nav-item active" onclick="showClientTab('tabSchedule', this)">📅<span>Расписание</span></button>
+  <button type="button" class="nav-item" onclick="showClientTab('tabTariffs', this)">💳<span>Абонементы</span></button>
+  <button type="button" class="nav-item" onclick="exitGuestMode()">🔑<span>Войти</span></button>
+</div>
+
 <div id="teacherNav" class="nav-bar hidden">
   <button type="button" class="nav-item active" onclick="showClientTab('tabSchedule', this)">📅<span>Расписание</span></button>
   <button type="button" class="nav-item" onclick="showClientTab('tabGroups', this)">👥<span>Состав групп</span></button>
@@ -386,7 +408,7 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
   <button type="button" class="nav-item" onclick="showAdminTab('admTabSchool', this)">🏫<span>Школа</span></button>
 </div>
 <script>
-var state = { user: null, schedule: [], visits: [], publicBookings: [], individual: [], tariffs: [], payments: [], notifications: [], teachers: [], directions: [], clients: [] };
+var state = { user: null, schedule: [], visits: [], publicBookings: [], individual: [], tariffs: [], payments: [], notifications: [], clientLogs: [], teachers: [], directions: [], clients: [] };
 var selectedDay = 'Все';
 var schedViewMode = 'list';
 var admSchedViewMode = 'list';
@@ -395,6 +417,7 @@ var uploadedEditPhoto = '';
 var isBusy = false;
 var groupByMode = 'date';
 var admGroupByMode = 'date';
+var pickedClientsMap = {};
 
 window.onload = function() {
   var saved = localStorage.getItem('studio_creds');
@@ -414,6 +437,31 @@ function cleanDigits(el) { el.value = el.value.replace(/\D/g, ''); }
 function normStr(s) { return String(s || '').trim().toLowerCase().replace(/ё/g, 'е'); }
 function togglePin(id) { var el = document.getElementById(id); el.type = (el.type === 'password') ? 'text' : 'password'; }
 function switchAuth(isReg) { document.getElementById('loginBox').classList.toggle('hidden', isReg); document.getElementById('regBox').classList.toggle('hidden', !isReg); }
+
+function enterGuestMode() {
+  api({ action: 'guest_data' }, function(d) {
+    if (d.status === 'success') {
+      state = {
+        user: { role: 'guest', name: 'Гость', phone: 'guest' },
+        schedule: d.schedule || [],
+        publicBookings: d.publicBookings || [],
+        tariffs: d.tariffs || [],
+        visits: [], individual: [], payments: [], notifications: [], clientLogs: [], teachers: [], directions: [], clients: []
+      };
+      document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('logoutBtn').classList.remove('hidden');
+      document.getElementById('logoutBtn').textContent = 'Войти';
+      document.getElementById('topSub').textContent = 'Гостевой просмотр';
+      document.getElementById('clientArea').classList.remove('hidden');
+      document.getElementById('guestNav').classList.remove('hidden');
+      renderClientAll();
+    }
+  });
+}
+
+function exitGuestMode() {
+  location.reload();
+}
 
 function handlePhotoUpload(input, previewId, mode) {
   var file = input.files && input.files.item(0);
@@ -505,6 +553,7 @@ function api(params, cb) {
 function openCabinetUI() {
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('logoutBtn').classList.remove('hidden');
+  document.getElementById('logoutBtn').textContent = 'Выйти';
   var rName = state.user.role === 'admin' ? 'Администратор' : (state.user.role === 'teacher' ? 'Преподаватель' : 'Ученик');
   document.getElementById('topSub').textContent = state.user.name + ' (' + rName + ')';
   if (state.user.role === 'admin') {
@@ -581,7 +630,7 @@ function addOpt(select, val, text) {
 function fmtDate(s) {
   var strVal = String(s || '').trim();
   var m = strVal.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (m) return m[3] + '.' + m[2] + '.' + m[1];
+  if (m) return m + '.' + m + '.' + m;
   return strVal;
 }
 
@@ -634,6 +683,65 @@ function toYMD(d) {
   return y + '-' + m + '-' + day;
 }
 
+function openClientQuickModal(phoneOrName) {
+  if (!state.user || state.user.role !== 'admin') return;
+  var q = String(phoneOrName || '').trim();
+  var c = (state.clients || []).find(function(x) { return x.phone === q || x.name === q; });
+  if (!c) return;
+
+  var body = document.getElementById('cqBody');
+  body.innerHTML = '';
+
+  var top = el('div', 'row');
+  top.style.justifyContent = 'flex-start'; top.style.gap = '14px'; top.style.marginBottom = '12px';
+  if (c.photo) {
+    var img = el('img', 'avatar-lg'); img.src = c.photo; top.appendChild(img);
+  } else {
+    top.appendChild(el('div', 'avatar-lg', c.name.charAt(0)));
+  }
+  var titleCol = el('div');
+  var nm = el('div', '', c.name); nm.style.fontSize = '18px'; nm.style.fontWeight = '700';
+  titleCol.appendChild(nm);
+  var ph = el('div', '', '+' + c.phone + (c.gender === 'M' ? ' • 🕺 Мальчик' : ' • 💃 Девочка'));
+  ph.style.fontSize = '13px'; ph.style.color = 'var(--m)'; ph.style.marginTop = '3px';
+  titleCol.appendChild(ph);
+  if (c.vk) {
+    var a = el('a', '', 'Профиль ВКонтакте'); a.href = c.vk; a.target = '_blank'; a.style.fontSize = '12px'; a.style.color = 'var(--p)';
+    titleCol.appendChild(a);
+  }
+  top.appendChild(titleCol);
+  body.appendChild(top);
+
+  var userPays = (state.payments || []).filter(function(p) { return p.phone === c.phone && p.status === 'confirmed'; });
+  var lastPay = userPays.length ? userPays[userPays.length - 1] : null;
+
+  var infoBox = el('div', 'attendees-box');
+  infoBox.style.fontSize = '13.5px'; infoBox.style.lineHeight = '1.65';
+  infoBox.appendChild(el('div', '', '💳 Действующий абонемент: ' + c.tariffName + (c.subId ? ' (ID: ' + c.subId + ')' : '')));
+  infoBox.appendChild(el('div', '', '🛒 Последняя покупка: ' + (lastPay ? (lastPay.tariffName + ' от ' + fmtDate(lastPay.date) + ' (' + lastPay.price + ' ₽)') : 'нет данных')));
+  infoBox.appendChild(el('div', '', '📅 Срок действия: ' + (c.startDate ? 'с ' + fmtDate(c.startDate) : 'не активирован') + (c.expireDate ? ' по ' + fmtDate(c.expireDate) : '')));
+  infoBox.appendChild(el('div', '', '✅ Посещено по абонементу: ' + c.usedCount + ' зан.'));
+  infoBox.appendChild(el('div', '', '🎟 Осталось занятий: ' + (c.balance === 999 ? 'Безлимит' : (c.balance + ' зан.'))));
+  body.appendChild(infoBox);
+
+  var logs = (state.clientLogs || []).filter(function(l) { return l.phone === c.phone; });
+  if (logs.length) {
+    var lh = el('div', '', 'Последние события (' + logs.length + '):');
+    lh.style.fontWeight = '700'; lh.style.fontSize = '13px'; lh.style.marginTop = '10px';
+    body.appendChild(lh);
+    logs.slice(0, 8).forEach(function(l) {
+      var r = el('div', '', '• ' + l.date + ' — ' + l.text);
+      r.style.fontSize = '12px'; r.style.color = 'var(--m)'; r.style.marginTop = '3px';
+      body.appendChild(r);
+    });
+  }
+
+  document.getElementById('clientQuickModal').classList.remove('hidden');
+}
+
+function closeClientQuickModal() {
+  document.getElementById('clientQuickModal').classList.add('hidden');
+}
 function getNext7DaysSchedule() {
   var dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
   var today = new Date();
@@ -692,8 +800,15 @@ function buildAttendeesNode(classId, targetDate, showDateTag) {
   title.style.marginBottom = '6px';
   box.appendChild(title);
 
+  var isAdmin = state.user && state.user.role === 'admin';
   list.forEach(function(b) {
-    var chip = el('span', 'attendee-chip');
+    var chip = el('span', 'attendee-chip' + (isAdmin ? ' clickable-client' : ''));
+    if (isAdmin) {
+      chip.onclick = function(ev) {
+        ev.stopPropagation();
+        openClientQuickModal(b.phone || b.clientName);
+      };
+    }
     if (b.photo) {
       var img = el('img', 'mini-av');
       img.src = b.photo;
@@ -799,6 +914,7 @@ function renderGroupsPool(containerId, mode) {
     return String(ga.time) < String(gb.time) ? -1 : 1;
   });
 
+  var isAdmin = state.user && state.user.role === 'admin';
   sortedKeys.forEach(function(k) {
     var g = groups[k];
     var mCnt = g.items.filter(function(x) { return x.gender === 'M'; }).length;
@@ -826,7 +942,10 @@ function renderGroupsPool(containerId, mode) {
       listWrap.textContent = 'Пока нет записавшихся на ближайший урок';
     } else {
       g.items.forEach(function(b) {
-        var chip = el('span', 'attendee-chip');
+        var chip = el('span', 'attendee-chip' + (isAdmin ? ' clickable-client' : ''));
+        if (isAdmin) {
+          chip.onclick = function(ev) { ev.stopPropagation(); openClientQuickModal(b.phone || b.clientName); };
+        }
         if (b.photo) { var img = el('img', 'mini-av'); img.src = b.photo; chip.appendChild(img); }
         else chip.appendChild(el('span', 'mini-av', b.clientName.charAt(0)));
         var gIcon = (b.gender === 'M') ? '🕺 ' : '💃 ';
@@ -841,7 +960,7 @@ function renderGroupsPool(containerId, mode) {
 function showClientTab(tabId, btn) {
   ['tabSchedule', 'tabGroups', 'tabInd', 'tabTariffs', 'tabProfile'].forEach(function(id) { document.getElementById(id).classList.add('hidden'); });
   document.getElementById(tabId).classList.remove('hidden');
-  document.querySelectorAll('#clientNav .nav-item, #teacherNav .nav-item').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelectorAll('#clientNav .nav-item, #teacherNav .nav-item, #guestNav .nav-item').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
 }
 
@@ -859,8 +978,13 @@ function renderClientAll() {
   fillClientSelectsAndRestorePrefs();
   renderDayTabs();
   renderSchedule();
+  var role = state.user.role;
+  if (role === 'guest') {
+    renderTariffs();
+    return;
+  }
   renderGroupsPool('groupsPoolList', groupByMode);
-  if (state.user.role !== 'teacher') {
+  if (role !== 'teacher') {
     checkNotifications();
     renderIndList();
     renderTariffs();
@@ -976,7 +1100,10 @@ function renderSchedule() {
 
   if (!filtered.length) { box.appendChild(el('div', 'card', 'На ближайшие 7 дней нет занятий по выбранному фильтру')); return; }
   filtered.forEach(function(cls) {
-    var booked = state.visits.find(function(v) { return v.classId === cls.classId && v.date === cls.date && v.status === 'booked'; });
+    var booked = state.visits.find(function(v) {
+      return v.status === 'booked' && v.date === cls.date &&
+        (v.classId === cls.classId || (v.time === cls.time && normStr(v.title) === normStr(cls.title) && normStr(v.location) === normStr(cls.location)));
+    });
     var card = el('div', 'card');
     var topRow = el('div', 'row');
     topRow.appendChild(el('span', 'badge', (cls.isToday ? '🔥 СЕГОДНЯ • ' : '') + cls.day + ' • ' + fmtDate(cls.date) + ' в ' + cls.time));
@@ -985,7 +1112,7 @@ function renderSchedule() {
     var h = el('h4', '', cls.title); h.style.margin = '8px 0 4px'; card.appendChild(h);
     var t = el('div', '', 'Преподаватель: ' + cls.teacher); t.style.fontSize = '13px'; t.style.color = 'var(--m)'; card.appendChild(t);
     card.appendChild(buildAttendeesNode(cls.classId, cls.date, false));
-    if (state.user.role !== 'teacher') {
+    if (state.user.role === 'client') {
       var btn = el('button', booked ? 'btn-d' : '', booked ? 'Отменить мою запись' : 'Запланировать посещение');
       btn.type = 'button';
       btn.onclick = function() {
@@ -997,6 +1124,7 @@ function renderSchedule() {
     box.appendChild(card);
   });
 }
+
 function renderWeekGrid(containerId, lessons) {
   var box = document.getElementById(containerId);
   box.innerHTML = '';
@@ -1028,8 +1156,6 @@ function renderWeekGrid(containerId, lessons) {
         var item = el('div', 'grid-lesson');
         item.style.background = pal.bg;
         item.style.borderColor = pal.border;
-		item.style.borderLeftWidth = '5px';
-        item.style.padding = '11px';
         item.onclick = function() { openLessonModal(cls); };
 
         var tm = el('div', '', '⏰ ' + cls.time + ' • 👥 ' + cnt);
@@ -1051,8 +1177,13 @@ function renderWeekGrid(containerId, lessons) {
   });
   box.appendChild(grid);
 }
-
 function bookGroup(id, date, time, day, title, teacher, loc) {
+  var already = (state.visits || []).some(function(v) {
+    return v.status === 'booked' && v.date === date &&
+      (v.classId === id || (v.time === time && normStr(v.title) === normStr(title) && normStr(v.location) === normStr(loc)));
+  });
+  if (already) return alert('Вы уже записаны на этот урок!');
+
   localStorage.setItem('studio_prefs_' + state.user.phone, JSON.stringify({ loc: loc, dir: title }));
   api({ action: 'book', classId: id, phone: state.user.phone, clientName: state.user.name, date: date, time: time, day: day, title: title, teacher: teacher, location: loc }, function(d) {
     if (d.status === 'success') doLogin(true); else alert(d.message);
@@ -1088,6 +1219,19 @@ function getTariffDurationText(t) {
 }
 
 function renderTariffs() {
+  var isGuest = state.user && state.user.role === 'guest';
+  var hintEl = document.getElementById('tariffsGuestHint');
+  var payTitle = document.getElementById('myPaymentsTitle');
+  var pBox = document.getElementById('myPaymentsList');
+
+  if (hintEl) {
+    hintEl.textContent = isGuest
+      ? 'Ознакомьтесь со стоимостью абонементов. Для покупки и записи на занятия войдите в личный кабинет или зарегистрируйтесь.'
+      : 'После перевода оплаты нажмите кнопку «Оплатил(а)» напротив нужного тарифа. Абонемент активируется после проверки администратором и начнет действовать со дня первого посещения.';
+  }
+  if (payTitle) payTitle.classList.toggle('hidden', isGuest);
+  if (pBox) pBox.classList.toggle('hidden', isGuest);
+
   var box = document.getElementById('tariffsList'); box.innerHTML = '';
   var cols = el('div', 'tariffs-cols');
   var colSingle = el('div', 'tariff-col-box');
@@ -1106,9 +1250,11 @@ function renderTariffs() {
     var pr = el('div', '', t.price + ' ₽'); pr.style.color = 'var(--p)'; pr.style.fontWeight = '700';
     bottom.appendChild(pr);
 
-    var btn = el('button', 'btn-s btn-sm', 'Оплатил(а)'); btn.type = 'button';
-    btn.onclick = function() { buyTariff(t.tariffId, t.name, t.price, t.count, t.isUnlimited); };
-    bottom.appendChild(btn);
+    if (!isGuest) {
+      var btn = el('button', 'btn-s btn-sm', 'Оплатил(а)'); btn.type = 'button';
+      btn.onclick = function() { buyTariff(t.tariffId, t.name, t.price, t.count, t.isUnlimited); };
+      bottom.appendChild(btn);
+    }
     card.appendChild(bottom);
 
     if (isPair) { colPair.appendChild(card); hasPair = true; }
@@ -1120,7 +1266,8 @@ function renderTariffs() {
   cols.appendChild(colSingle); cols.appendChild(colPair);
   box.appendChild(cols);
 
-  var pBox = document.getElementById('myPaymentsList'); pBox.innerHTML = '';
+  if (isGuest || !pBox) return;
+  pBox.innerHTML = '';
   state.payments.forEach(function(p) {
     var stText = p.status === 'confirmed' ? '✅ Подтверждено (ID: ' + (p.subId || '—') + ')' : (p.status === 'rejected' ? '❌ Не подтверждено админом' : '⏳ Ожидает проверки админом');
     var card = el('div', 'card', fmtDate(p.date) + ' • ' + p.tariffName + ' (' + p.price + ' ₽) — ' + stText);
@@ -1135,6 +1282,7 @@ function buyTariff(id, name, price, count, isUnlim) {
     alert(d.message); doLogin(true);
   });
 }
+
 function renderProfile() {
   var u = state.user;
   var prefs = JSON.parse(localStorage.getItem('studio_prefs_' + u.phone) || '{}');
@@ -1162,15 +1310,14 @@ function renderProfile() {
   uploadedEditPhoto = u.photo || '';
 
   var nBox = document.getElementById('myNotifsList'); nBox.innerHTML = '';
-  var notifs = state.notifications || [];
+  var notifs = (state.notifications || []).filter(function(n) { return !n.isRead; });
   if (!notifs.length) {
-    var emN = el('div', 'card', 'Пока нет новых уведомлений'); emN.style.color = 'var(--m)'; emN.style.fontSize = '13px';
+    var emN = el('div', 'card', 'Нет непрочитанных уведомлений'); emN.style.color = 'var(--m)'; emN.style.fontSize = '13px';
     nBox.appendChild(emN);
   } else {
     notifs.forEach(function(n) {
       var nc = el('div', 'card');
-      nc.style.padding = '10px 12px'; nc.style.fontSize = '13px';
-      if (!n.isRead) nc.style.borderLeft = '4px solid var(--p)';
+      nc.style.padding = '10px 12px'; nc.style.fontSize = '13px'; nc.style.borderLeft = '4px solid var(--p)';
       nc.appendChild(el('div', '', n.text));
       var dt = el('div', '', n.date); dt.style.fontSize = '11px'; dt.style.color = 'var(--m)'; dt.style.marginTop = '3px';
       nc.appendChild(dt);
@@ -1197,16 +1344,33 @@ function renderProfile() {
       hBox.appendChild(card);
     });
   }
+
+  var lBox = document.getElementById('myLogList');
+  if (lBox) {
+    lBox.innerHTML = '';
+    var logs = state.clientLogs || [];
+    if (!logs.length) {
+      var emL = el('div', 'card', 'Записей о событиях пока нет'); emL.style.color = 'var(--m)'; emL.style.fontSize = '13px';
+      lBox.appendChild(emL);
+    } else {
+      logs.slice(0, 25).forEach(function(lg) {
+        var lc = el('div', 'card'); lc.style.padding = '9px 12px'; lc.style.fontSize = '12.5px';
+        lc.appendChild(el('div', '', lg.text));
+        var dtm = el('div', '', lg.date); dtm.style.fontSize = '11px'; dtm.style.color = 'var(--m)'; dtm.style.marginTop = '2px';
+        lc.appendChild(dtm);
+        lBox.appendChild(lc);
+      });
+    }
+  }
 }
 
 function markAllNotifsRead() {
   api({ action: 'mark_notifs_read', phone: state.user.phone }, function() {
-    (state.notifications || []).forEach(function(n) { n.isRead = true; });
+    state.notifications = [];
     checkNotifications();
     renderProfile();
   });
 }
-
 function toggleEditProfile() { document.getElementById('editProfileForm').classList.toggle('hidden'); }
 
 function saveProfile() {
@@ -1267,7 +1431,7 @@ function renderAdminAlerts() {
 
   var overdueVisits = state.visits.filter(function(v) { return v.status === 'booked' && v.date && v.date < todayYMD; });
   if (overdueVisits.length) {
-    box.appendChild(el('div', 'alert-box alert-danger', '🚨 Не подтверждены посещения за прошедшие дни: ' + overdueVisits.length + ' чел.! Отметьте их во вкладке «Визиты», чтобы списать занятия.'));
+    box.appendChild(el('div', 'alert-box alert-danger', '🚨 Не подтверждены посещения за прошедшие дни: ' + overdueVisits.length + ' чел.! Отметьте их или отмените неявку во вкладке «Визиты».'));
   }
 
   var waitPay = state.payments.filter(function(p) { return p.status === 'client_paid'; });
@@ -1292,6 +1456,12 @@ function renderAdminAlerts() {
   }
 }
 
+function updatePickedCounter() {
+  var cnt = Object.keys(pickedClientsMap).length;
+  var elCnt = document.getElementById('admPickedCounter');
+  if (elCnt) elCnt.textContent = 'Отмечено учеников: ' + cnt;
+}
+
 function openExcelDropdown() {
   filterAdminClients(true);
 }
@@ -1299,7 +1469,6 @@ function openExcelDropdown() {
 function filterAdminClients(showDrop) {
   var inp = document.getElementById('admClientSearch');
   var drop = document.getElementById('admClientDropdown');
-  var hiddenVal = document.getElementById('admManualClient');
   if (!inp || !drop) return;
 
   var q = normStr(inp.value);
@@ -1314,18 +1483,29 @@ function filterAdminClients(showDrop) {
     drop.appendChild(empty);
   } else {
     list.forEach(function(c) {
-      var opt = el('div', 'excel-opt');
-      var balTxt = (c.balance === 999 ? 'Безлим' : c.balance + ' зан.');
-      opt.appendChild(el('span', '', c.name));
-      opt.appendChild(el('span', 'badge', balTxt));
-      opt.onclick = function() {
-        inp.value = c.name + ' (' + balTxt + ')';
-        hiddenVal.value = c.phone + '|' + c.name;
-        drop.classList.add('hidden');
+      var opt = el('label', 'excel-opt');
+      var left = el('div', 'row');
+      left.style.justifyContent = 'flex-start'; left.style.gap = '8px';
+
+      var chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.className = 'excel-chk';
+      chk.checked = !!pickedClientsMap[c.phone];
+      chk.onchange = function() {
+        if (chk.checked) pickedClientsMap[c.phone] = c.name;
+        else delete pickedClientsMap[c.phone];
+        updatePickedCounter();
       };
+      left.appendChild(chk);
+      left.appendChild(el('span', '', c.name));
+
+      var balTxt = (c.balance === 999 ? 'Безлим' : c.balance + ' зан.');
+      opt.appendChild(left);
+      opt.appendChild(el('span', 'badge', balTxt));
       drop.appendChild(opt);
     });
   }
+  updatePickedCounter();
   if (showDrop) drop.classList.remove('hidden');
 }
 
@@ -1348,13 +1528,21 @@ function renderAdminAll() {
   if (!booked.length) { var em = el('div', 'card', 'Нет ожидающих записей'); em.style.color = 'var(--m)'; bBox.appendChild(em); }
   booked.forEach(function(v) {
     var card = el('div', 'card');
-    var r = el('div', 'row'); r.appendChild(el('strong', '', v.clientName)); r.appendChild(el('span', 'badge', fmtDate(v.date) + (v.time ? ' ' + v.time : '')));
+    var r = el('div', 'row');
+    var nameLink = el('strong', 'clickable-client', v.clientName);
+    nameLink.onclick = function() { openClientQuickModal(v.phone); };
+    r.appendChild(nameLink);
+    r.appendChild(el('span', 'badge', fmtDate(v.date) + (v.time ? ' ' + v.time : '')));
     card.appendChild(r);
     var sub = el('div', '', v.title + ' (' + v.location + ') • +' + v.phone); sub.style.fontSize = '13px'; sub.style.margin = '6px 0';
     card.appendChild(sub);
-    var btn = el('button', 'btn-s', 'Подтвердить визит (списать 1)'); btn.type = 'button';
-    btn.onclick = function() { confirmVisit(v.visitId, v.phone, v.date, v.time, v.day, v.title); };
-    card.appendChild(btn);
+    var br = el('div', 'row');
+    var btnOk = el('button', 'btn-s', 'Подтвердить (списать 1)'); btnOk.type = 'button';
+    btnOk.onclick = function() { confirmVisit(v.visitId, v.phone, v.date, v.time, v.day, v.title); };
+    var btnNoShow = el('button', 'btn-d', 'Не явился (отменить)'); btnNoShow.type = 'button';
+    btnNoShow.onclick = function() { adminCancelVisit(v.visitId); };
+    br.appendChild(btnOk); br.appendChild(btnNoShow);
+    card.appendChild(br);
     bBox.appendChild(card);
   });
 
@@ -1363,7 +1551,10 @@ function renderAdminAll() {
   if (!pendInd.length) { var em2 = el('div', 'card', 'Нет новых заявок на индивы'); em2.style.color = 'var(--m)'; indBox.appendChild(em2); }
   pendInd.forEach(function(ind) {
     var card = el('div', 'card');
-    card.appendChild(el('strong', '', ind.clientName + ' — ' + ind.style));
+    var nameLink = el('strong', 'clickable-client', ind.clientName);
+    nameLink.onclick = function() { openClientQuickModal(ind.phone); };
+    card.appendChild(nameLink);
+    card.appendChild(document.createTextNode(' — ' + ind.style));
     var sub = el('div', '', fmtDate(ind.date) + ' в ' + ind.time + ' • ' + ind.location + ' • Педагог: ' + ind.teacher); sub.style.fontSize = '13px'; sub.style.marginTop = '4px';
     card.appendChild(sub);
     var br = el('div', 'row');
@@ -1386,7 +1577,10 @@ function renderAdminAll() {
   if (!waitPay.length) { var em3 = el('div', 'card', 'Нет неподтвержденных оплат'); em3.style.color = 'var(--m)'; payBox.appendChild(em3); }
   waitPay.forEach(function(p) {
     var card = el('div', 'card');
-    card.appendChild(el('strong', '', p.clientName + ' оплатил ' + p.tariffName + ' (' + p.price + ' ₽)'));
+    var nameLink = el('strong', 'clickable-client', p.clientName);
+    nameLink.onclick = function() { openClientQuickModal(p.phone); };
+    card.appendChild(nameLink);
+    card.appendChild(document.createTextNode(' оплатил ' + p.tariffName + ' (' + p.price + ' ₽)'));
     var br = el('div', 'row');
     var btnOk = el('button', 'btn-s', 'Утвердить и начислить'); btnOk.type = 'button'; btnOk.onclick = function() { confirmPay(p.payId); };
     var btnNo = el('button', 'btn-d', 'Не утверждать'); btnNo.type = 'button'; btnNo.onclick = function() { rejectPay(p.payId); };
@@ -1420,7 +1614,6 @@ function renderAdminAll() {
   fillReportMonths();
   renderAnalytics();
 }
-
 function renderAdminSched() {
   if (admSchedViewMode === 'grid') {
     renderWeekGrid('admSchedGrid', getNext7DaysSchedule());
@@ -1443,6 +1636,7 @@ function renderAdminSched() {
     schedBox.appendChild(card);
   });
 }
+
 function saveScheduleItem() {
   var p = { action: 'save_schedule', classId: document.getElementById('editClassId').value, day: document.getElementById('sDay').value, date: document.getElementById('sDate').value, time: document.getElementById('sTime').value, location: document.getElementById('sLoc').value, title: document.getElementById('sDirSelect').value, teacher: document.getElementById('sTeacherSelect').value };
   if (!p.title || !p.teacher) return alert('Заполните направление и педагога');
@@ -1471,6 +1665,7 @@ function editTariff(id) {
 }
 function resetTariffForm() { document.getElementById('tariffFormTitle').textContent = 'Добавить новый абонемент'; document.getElementById('editTariffId').value = ''; document.getElementById('tName').value = ''; document.getElementById('tPrice').value = ''; document.getElementById('tCount').value = ''; document.getElementById('cancelEditTariffBtn').classList.add('hidden'); }
 function delTariff(id) { if (confirm('Удалить этот абонемент?')) api({ action: 'delete_tariff', tariffId: id }, function() { doLogin(true); }); }
+
 function renderDicts() {
   var tBox = document.getElementById('teachersListBox'); tBox.innerHTML = '';
   state.teachers.forEach(function(t) {
@@ -1496,32 +1691,77 @@ function editDictItem(type, id, oldName) { var newName = prompt('Введите 
 function delDictItem(type, id) { if (confirm('Удалить запись?')) api({ action: type === 'teacher' ? 'delete_teacher' : 'delete_direction', id: id }, function() { doLogin(true); }); }
 
 function adminManualVisit() {
-  var rawC = document.getElementById('admManualClient').value;
-  if (!rawC) return alert('Выберите ученика из выпадающего списка');
-  var cVal = rawC.split('|');
+  var phones = Object.keys(pickedClientsMap);
+  if (!phones.length) return alert('Отметьте галочкой хотя бы одного ученика в списке');
+  var names = phones.map(function(ph) { return pickedClientsMap[ph]; });
   var sVal = document.getElementById('admManualClass').value.split('|');
-  api({ action: 'confirm_visit', phone: cVal[0], clientName: cVal[1], classId: sVal[0], date: sVal[1], time: sVal[2], day: sVal[3], title: sVal[4], teacher: sVal[5], location: sVal[6] }, function(d) {
+
+  api({
+    action: 'confirm_visit_batch',
+    phones: phones.join(','),
+    names: names.join('|'),
+    classId: sVal,
+    date: sVal,
+    time: sVal,
+    day: sVal,
+    title: sVal,
+    teacher: sVal,
+    location: sVal
+  }, function(d) {
     alert(d.message);
+    pickedClientsMap = {};
     document.getElementById('admClientSearch').value = '';
-    document.getElementById('admManualClient').value = '';
     doLogin(true);
   });
 }
 function confirmVisit(vId, phone, date, time, day, title) { api({ action: 'confirm_visit', visitId: vId, phone: phone, date: date, time: time, day: day, title: title }, function(d) { if (d.status === 'error') alert(d.message); doLogin(true); }); }
+function adminCancelVisit(vId) { if (confirm('Отменить запись ученика (не явился на урок)? Занятие с баланса списано не будет.')) api({ action: 'admin_cancel_visit', visitId: vId }, function(d) { alert(d.message); doLogin(true); }); }
 function confirmInd(indId) { api({ action: 'confirm_ind', indId: indId }, function(d) { alert(d.message); doLogin(true); }); }
 function rejectInd(indId) { if (confirm('Отклонить заявку на индивидуальное занятие?')) api({ action: 'reject_ind', indId: indId }, function(d) { alert(d.message); doLogin(true); }); }
 function confirmPay(payId) { api({ action: 'confirm_payment', payId: payId }, function(d) { alert(d.message); doLogin(true); }); }
 function rejectPay(payId) { if (confirm('Отклонить эту оплату? Абонемент начислен не будет.')) api({ action: 'reject_payment', payId: payId }, function(d) { alert(d.message); doLogin(true); }); }
+
+function extendClientSub(phone) {
+  var inp = document.getElementById('admExtendDays');
+  var days = Number(inp ? inp.value : 0);
+  if (!days || days <= 0) return alert('Укажите количество дней для продления (например: 7)');
+  api({ action: 'extend_sub', phone: phone, days: days }, function(d) {
+    alert(d.message);
+    if (d.status === 'success') doLogin(true);
+  });
+}
+
 function inspectClient() {
   var ph = document.getElementById('admInspectSelect').value;
   var c = state.clients.find(function(x) { return x.phone === ph; }); if (!c) return;
   var hist = state.visits.filter(function(v) { return v.phone === ph && v.status === 'visited'; });
+  var logs = (state.clientLogs || []).filter(function(l) { return l.phone === ph; });
   var box = document.getElementById('admInspectCard'); box.innerHTML = '';
+
   var card = el('div', 'card');
-  card.appendChild(el('strong', '', c.name + ' (+' + c.phone + ')'));
-  card.appendChild(el('div', '', 'Тариф: ' + c.tariffName + ' (ID: ' + (c.subId || '—') + ') | Остаток: ' + (c.balance === 999 ? 'Безлимит' : c.balance)));
-  card.appendChild(el('div', '', 'Срок: ' + (c.startDate ? fmtDate(c.startDate) : '—') + ' по ' + (c.expireDate ? fmtDate(c.expireDate) : '—')));
-  card.appendChild(el('div', '', 'Последний выбор: ' + (c.plans || '—')));
+  var head = el('div', 'row');
+  head.style.justifyContent = 'flex-start'; head.style.gap = '12px'; head.style.marginBottom = '8px';
+  if (c.photo) { var im = el('img', 'avatar'); im.src = c.photo; head.appendChild(im); }
+  else head.appendChild(el('div', 'avatar', c.name.charAt(0)));
+  var hInfo = el('div');
+  var nm = el('strong', 'clickable-client', c.name + ' (+' + c.phone + ')');
+  nm.onclick = function() { openClientQuickModal(c.phone); };
+  hInfo.appendChild(nm);
+  hInfo.appendChild(el('div', '', 'Тариф: ' + c.tariffName + ' (ID: ' + (c.subId || '—') + ')'));
+  hInfo.appendChild(el('div', '', 'Остаток: ' + (c.balance === 999 ? 'Безлимит' : c.balance + ' зан.') + ' • Посещено: ' + c.usedCount));
+  head.appendChild(hInfo);
+  card.appendChild(head);
+
+  card.appendChild(el('div', '', 'Срок действия: ' + (c.startDate ? fmtDate(c.startDate) : '—') + ' по ' + (c.expireDate ? fmtDate(c.expireDate) : '—')));
+
+  var extRow = el('div', 'row'); extRow.style.marginTop = '8px';
+  var extInp = document.createElement('input');
+  extInp.type = 'number'; extInp.id = 'admExtendDays'; extInp.placeholder = 'Дней продления'; extInp.style.marginTop = '0';
+  var extBtn = el('button', 'btn-s btn-sm', 'Продлить срок'); extBtn.type = 'button';
+  extBtn.onclick = function() { extendClientSub(c.phone); };
+  extRow.appendChild(extInp); extRow.appendChild(extBtn);
+  card.appendChild(extRow);
+
   card.appendChild(el('hr'));
   card.appendChild(el('strong', '', 'История посещений (' + hist.length + '):'));
   hist.forEach(function(h) {
@@ -1529,6 +1769,16 @@ function inspectClient() {
     row.style.fontSize = '12px'; row.style.marginTop = '4px';
     card.appendChild(row);
   });
+
+  if (logs.length) {
+    card.appendChild(el('hr'));
+    card.appendChild(el('strong', '', 'Журнал событий по клиенту (' + logs.length + '):'));
+    logs.slice(0, 20).forEach(function(lg) {
+      var lrow = el('div', '', '• ' + lg.date + ' — ' + lg.text);
+      lrow.style.fontSize = '12px'; lrow.style.color = 'var(--m)'; lrow.style.marginTop = '3px';
+      card.appendChild(lrow);
+    });
+  }
   box.appendChild(card);
 }
 
