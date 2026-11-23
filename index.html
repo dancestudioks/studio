@@ -21,6 +21,7 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
 .row{display:flex;justify-content:space-between;align-items:center;gap:6px}
 .badge{display:inline-block;padding:4px 8px;border-radius:8px;font-size:12px;font-weight:600;background:#ede9fe;color:var(--p)}
 .badge-loc{background:#e3fcef;color:#00875a}
+.badge-ind{background:#fff3cd;color:#856404}
 .hint{font-size:11px;color:var(--m);margin-top:3px;padding-left:2px;line-height:1.3}
 .attendees-box{background:#f8f9fa;border-radius:10px;padding:8px 10px;margin:8px 0;border:1px solid #edf2f7}
 .attendee-chip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid #dfe6e9;border-radius:16px;padding:3px 9px 3px 4px;font-size:12px;margin:3px 4px 3px 0;color:var(--t)}
@@ -64,7 +65,8 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
 </style>
 </head>
 <body>
-<input type="hidden" id="apiUrlField" value="https://script.google.com/macros/s/AKfycbw-lmymqW2LjhVTdn_nyYIDjQYNTspP8pJ2N4QRV1hdZt7sIOUDoqkKWqizG-YY2gy4cQ/exec">
+
+<input type="hidden" id="apiUrlField" value="https://script.google.com/macros/s/AKfycbwEce39_abquPZijQkfeGyBFHmtWGM4V9B42AY3fzh4oK_EvBh8ArBa4hvIrEroNn_8nw/exec">
 
 <div class="header">
   <div>
@@ -96,6 +98,15 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
   </div>
 </div>
 
+<div id="peerModal" class="modal-bg hidden" onclick="if(event.target===this)closePeerModal()">
+  <div class="modal-card">
+    <div class="row">
+      <strong style="font-size:16px">Участник студии</strong>
+      <button type="button" class="btn-o btn-sm" onclick="closePeerModal()">✕</button>
+    </div>
+    <div id="peerBody" style="margin-top:10px"></div>
+  </div>
+</div>
 <div class="container">
   <div id="loader" class="card hidden" style="text-align:center;color:var(--p);font-weight:600">Обновление данных...</div>
 
@@ -407,7 +418,7 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
   <button type="button" class="nav-item" onclick="showAdminTab('admTabSchool', this)">🏫<span>Школа</span></button>
 </div>
 <script>
-var state = { user: null, schedule: [], visits: [], publicBookings: [], individual: [], tariffs: [], payments: [], notifications: [], clientLogs: [], teachers: [], directions: [], clients: [] };
+var state = { user: null, schedule: [], visits: [], publicBookings: [], confirmedInds: [], individual: [], tariffs: [], payments: [], notifications: [], clientLogs: [], teachers: [], directions: [], clients: [] };
 var selectedDay = 'Все';
 var schedViewMode = 'list';
 var admSchedViewMode = 'list';
@@ -471,6 +482,7 @@ function showGuestSection(section, btn) {
         user: { role: 'guest', name: 'Гость', phone: 'guest' },
         schedule: d.schedule || [],
         publicBookings: d.publicBookings || [],
+        confirmedInds: d.confirmedInds || [],
         tariffs: d.tariffs || [],
         visits: [], individual: [], payments: [], notifications: [], clientLogs: [], teachers: [], directions: [], clients: []
       };
@@ -514,7 +526,6 @@ function handlePhotoUpload(input, previewId, mode) {
   };
   reader.readAsDataURL(file);
 }
-
 function sendPhotoBg(phone, photoData) {
   if (!photoData || !phone) return;
   var url = document.getElementById('apiUrlField').value.trim();
@@ -659,6 +670,11 @@ function buildColorMap() {
     var k = normStr(s.title) + '|' + normStr(s.location) + '|' + normStr(s.teacher);
     if (keys.indexOf(k) === -1) keys.push(k);
   });
+  var indsSource = state.confirmedInds || (state.individual || []).filter(function(x) { return x.status === 'confirmed'; });
+  indsSource.forEach(function(ind) {
+    var k = normStr('Индив: ' + ind.style) + '|' + normStr(ind.location) + '|' + normStr(ind.teacher);
+    if (keys.indexOf(k) === -1) keys.push(k);
+  });
   keys.sort();
 
   var total = keys.length || 1;
@@ -701,7 +717,6 @@ function toYMD(d) {
   var day = String(d.getDate()).padStart(2, '0');
   return y + '-' + m + '-' + day;
 }
-
 function openClientQuickModal(phoneOrName) {
   if (!state.user || state.user.role !== 'admin') return;
   var q = String(phoneOrName || '').trim();
@@ -761,6 +776,70 @@ function openClientQuickModal(phoneOrName) {
 function closeClientQuickModal() {
   document.getElementById('clientQuickModal').classList.add('hidden');
 }
+
+function openPeerModal(peerName, peerPhoto, peerGender) {
+  var body = document.getElementById('peerBody');
+  body.innerHTML = '';
+
+  var top = el('div', 'row');
+  top.style.justifyContent = 'flex-start'; top.style.gap = '14px'; top.style.marginBottom = '12px';
+  if (peerPhoto) {
+    var img = el('img', 'avatar-lg'); img.src = peerPhoto; top.appendChild(img);
+  } else {
+    top.appendChild(el('div', 'avatar-lg', String(peerName || 'У').charAt(0)));
+  }
+  var titleCol = el('div');
+  var nm = el('div', '', peerName); nm.style.fontSize = '18px'; nm.style.fontWeight = '700';
+  titleCol.appendChild(nm);
+  var gd = el('div', '', peerGender === 'M' ? '🕺 Мальчик' : '💃 Девочка');
+  gd.style.fontSize = '13px'; gd.style.color = 'var(--m)'; gd.style.marginTop = '4px';
+  titleCol.appendChild(gd);
+  top.appendChild(titleCol);
+  body.appendChild(top);
+
+  var userItems = (state.publicBookings || []).filter(function(b) {
+    return normStr(b.clientName) === normStr(peerName);
+  });
+
+  var uniqueGroups = [];
+  var seen = {};
+  userItems.forEach(function(b) {
+    var tm = b.time;
+    if (!tm && b.classId) {
+      var clsObj = (state.schedule || []).find(function(s) { return s.classId === b.classId; });
+      if (clsObj) tm = clsObj.time;
+    }
+    var key = normStr(b.title) + '|' + normStr(b.location) + '|' + (b.date || '') + '|' + (tm || '');
+    if (!seen[key]) {
+      seen[key] = true;
+      uniqueGroups.push({ title: b.title, location: b.location, date: b.date, time: tm });
+    }
+  });
+
+  var gh = el('div', '', 'Группы, которые посещает (' + uniqueGroups.length + '):');
+  gh.style.fontWeight = '700'; gh.style.fontSize = '14px'; gh.style.marginBottom = '6px';
+  body.appendChild(gh);
+
+  if (!uniqueGroups.length) {
+    body.appendChild(el('div', 'hint', 'Пока нет активных записей в группы'));
+  } else {
+    uniqueGroups.forEach(function(g) {
+      var row = el('div', 'attendees-box');
+      row.style.margin = '5px 0'; row.style.fontSize = '13px';
+      row.appendChild(el('strong', '', '💃 ' + g.title));
+      var subLine = el('div', '', '📍 ' + g.location + (g.date ? ' • 📅 ' + fmtDate(g.date) : '') + (g.time ? ' в ' + g.time : ''));
+      subLine.style.fontSize = '12px'; subLine.style.color = 'var(--m)'; subLine.style.marginTop = '3px';
+      row.appendChild(subLine);
+      body.appendChild(row);
+    });
+  }
+
+  document.getElementById('peerModal').classList.remove('hidden');
+}
+
+function closePeerModal() {
+  document.getElementById('peerModal').classList.add('hidden');
+}
 function getNext7DaysSchedule() {
   var dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
   var today = new Date();
@@ -785,7 +864,25 @@ function getNext7DaysSchedule() {
           title: cls.title,
           teacher: cls.teacher,
           location: cls.location,
-          isToday: offset === 0
+          isToday: offset === 0,
+          isInd: false
+        });
+      }
+    });
+
+    var indsSource = state.confirmedInds || (state.individual || []).filter(function(x) { return x.status === 'confirmed'; });
+    indsSource.forEach(function(ind) {
+      if (ind.date === curYMD) {
+        result.push({
+          classId: 'IND-' + ind.indId,
+          day: curDayName,
+          date: curYMD,
+          time: ind.time,
+          title: 'Индив: ' + ind.style,
+          teacher: ind.teacher,
+          location: ind.location,
+          isToday: offset === 0,
+          isInd: true
         });
       }
     });
@@ -820,12 +917,18 @@ function buildAttendeesNode(classId, targetDate, showDateTag) {
   box.appendChild(title);
 
   var isAdmin = state.user && state.user.role === 'admin';
+  var isAuthUser = state.user && state.user.role !== 'guest';
   list.forEach(function(b) {
-    var chip = el('span', 'attendee-chip' + (isAdmin ? ' clickable-client' : ''));
+    var chip = el('span', 'attendee-chip' + (isAuthUser ? ' clickable-client' : ''));
     if (isAdmin) {
       chip.onclick = function(ev) {
         ev.stopPropagation();
         openClientQuickModal(b.phone || b.clientName);
+      };
+    } else if (isAuthUser) {
+      chip.onclick = function(ev) {
+        ev.stopPropagation();
+        openPeerModal(b.clientName, b.photo, b.gender);
       };
     }
     if (b.photo) {
@@ -849,11 +952,17 @@ function openLessonModal(cls) {
   document.getElementById('mLessonSub').textContent = cls.day + ' • ' + fmtDate(cls.date) + ' в ' + cls.time + ' • ' + cls.location + ' • Педагог: ' + cls.teacher;
   var attBox = document.getElementById('mLessonAttendees');
   attBox.innerHTML = '';
-  attBox.appendChild(buildAttendeesNode(cls.classId, cls.date, false));
+  if (cls.isInd) {
+    var indNote = el('div', 'attendees-box', '💃 Индивидуальное занятие (время зала и педагога забронировано)');
+    indNote.style.fontSize = '13px';
+    attBox.appendChild(indNote);
+  } else {
+    attBox.appendChild(buildAttendeesNode(cls.classId, cls.date, false));
+  }
 
   var actBox = document.getElementById('mLessonAction');
   actBox.innerHTML = '';
-  if (state.user && state.user.role === 'client') {
+  if (state.user && state.user.role === 'client' && !cls.isInd) {
     var booked = state.visits.find(function(v) { return v.classId === cls.classId && v.date === cls.date && v.status === 'booked'; });
     var btn = el('button', booked ? 'btn-d' : '', booked ? 'Отменить мою запись' : 'Запланировать посещение');
     btn.type = 'button';
@@ -870,7 +979,6 @@ function openLessonModal(cls) {
 function closeLessonModal() {
   document.getElementById('lessonModal').classList.add('hidden');
 }
-
 function setGroupBy(mode) {
   groupByMode = mode;
   document.getElementById('btnGrpDate').classList.toggle('active', mode === 'date');
@@ -889,7 +997,7 @@ function renderGroupsPool(containerId, mode) {
   var box = document.getElementById(containerId);
   if (!box) return;
   box.innerHTML = '';
-  var upcoming = getNext7DaysSchedule();
+  var upcoming = getNext7DaysSchedule().filter(function(c) { return !c.isInd; });
   var bookedOnly = (state.publicBookings || []).filter(function(b) { return b.status === 'booked'; });
 
   if (!upcoming.length && !bookedOnly.length) {
@@ -934,6 +1042,7 @@ function renderGroupsPool(containerId, mode) {
   });
 
   var isAdmin = state.user && state.user.role === 'admin';
+  var isAuthUser = state.user && state.user.role !== 'guest';
   sortedKeys.forEach(function(k) {
     var g = groups[k];
     var mCnt = g.items.filter(function(x) { return x.gender === 'M'; }).length;
@@ -961,9 +1070,11 @@ function renderGroupsPool(containerId, mode) {
       listWrap.textContent = 'Пока нет записавшихся на ближайший урок';
     } else {
       g.items.forEach(function(b) {
-        var chip = el('span', 'attendee-chip' + (isAdmin ? ' clickable-client' : ''));
+        var chip = el('span', 'attendee-chip' + (isAuthUser ? ' clickable-client' : ''));
         if (isAdmin) {
           chip.onclick = function(ev) { ev.stopPropagation(); openClientQuickModal(b.phone || b.clientName); };
+        } else if (isAuthUser) {
+          chip.onclick = function(ev) { ev.stopPropagation(); openPeerModal(b.clientName, b.photo, b.gender); };
         }
         if (b.photo) { var img = el('img', 'mini-av'); img.src = b.photo; chip.appendChild(img); }
         else chip.appendChild(el('span', 'mini-av', b.clientName.charAt(0)));
@@ -976,13 +1087,13 @@ function renderGroupsPool(containerId, mode) {
     box.appendChild(card);
   });
 }
+
 function showClientTab(tabId, btn) {
   ['tabSchedule', 'tabGroups', 'tabInd', 'tabTariffs', 'tabProfile'].forEach(function(id) { document.getElementById(id).classList.add('hidden'); });
   document.getElementById(tabId).classList.remove('hidden');
   document.querySelectorAll('#clientNav .nav-item, #teacherNav .nav-item, #guestNav .nav-item').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
 }
-
 function setSchedView(mode) {
   schedViewMode = mode;
   document.getElementById('btnViewList').classList.toggle('active', mode === 'list');
@@ -1103,8 +1214,9 @@ function renderSchedule() {
   var next7 = getNext7DaysSchedule();
 
   var baseFiltered = next7.filter(function(s) {
+    var cleanTitle = normStr(s.title).replace(/^индив:\s*/, '');
     return (loc === 'all' || normStr(s.location) === loc) &&
-           (dir === 'all' || normStr(s.title) === dir);
+           (dir === 'all' || normStr(s.title) === dir || cleanTitle === dir);
   });
 
   if (schedViewMode === 'grid') {
@@ -1125,13 +1237,21 @@ function renderSchedule() {
     });
     var card = el('div', 'card');
     var topRow = el('div', 'row');
-    topRow.appendChild(el('span', 'badge', (cls.isToday ? '🔥 СЕГОДНЯ • ' : '') + cls.day + ' • ' + fmtDate(cls.date) + ' в ' + cls.time));
+    topRow.appendChild(el('span', 'badge' + (cls.isInd ? ' badge-ind' : ''), (cls.isToday ? '🔥 СЕГОДНЯ • ' : '') + cls.day + ' • ' + fmtDate(cls.date) + ' в ' + cls.time));
     topRow.appendChild(el('span', 'badge badge-loc', cls.location));
     card.appendChild(topRow);
-    var h = el('h4', '', cls.title); h.style.margin = '8px 0 4px'; card.appendChild(h);
+    var h = el('h4', '', (cls.isInd ? '💃 ' : '') + cls.title); h.style.margin = '8px 0 4px'; card.appendChild(h);
     var t = el('div', '', 'Преподаватель: ' + cls.teacher); t.style.fontSize = '13px'; t.style.color = 'var(--m)'; card.appendChild(t);
-    card.appendChild(buildAttendeesNode(cls.classId, cls.date, false));
-    if (state.user.role === 'client') {
+
+    if (cls.isInd) {
+      var indInfo = el('div', 'attendees-box', 'Индивидуальное занятие (время зала и педагога занято)');
+      indInfo.style.fontSize = '12px'; indInfo.style.color = 'var(--m)';
+      card.appendChild(indInfo);
+    } else {
+      card.appendChild(buildAttendeesNode(cls.classId, cls.date, false));
+    }
+
+    if (state.user.role === 'client' && !cls.isInd) {
       var btn = el('button', booked ? 'btn-d' : '', booked ? 'Отменить мою запись' : 'Запланировать посещение');
       btn.type = 'button';
       btn.onclick = function() {
@@ -1143,7 +1263,6 @@ function renderSchedule() {
     box.appendChild(card);
   });
 }
-
 function renderWeekGrid(containerId, lessons) {
   var box = document.getElementById(containerId);
   box.innerHTML = '';
@@ -1177,7 +1296,8 @@ function renderWeekGrid(containerId, lessons) {
         item.style.borderColor = pal.border;
         item.onclick = function() { openLessonModal(cls); };
 
-        var tm = el('div', '', '⏰ ' + cls.time + ' • 👥 ' + cnt);
+        var tmText = cls.isInd ? ('⏰ ' + cls.time + ' • 💃 Индив') : ('⏰ ' + cls.time + ' • 👥 ' + cnt);
+        var tm = el('div', '', tmText);
         tm.style.fontSize = '13px'; tm.style.color = pal.accent; tm.style.fontWeight = '700';
         item.appendChild(tm);
 
@@ -1196,6 +1316,7 @@ function renderWeekGrid(containerId, lessons) {
   });
   box.appendChild(grid);
 }
+
 function bookGroup(id, date, time, day, title, teacher, loc) {
   var already = (state.visits || []).some(function(v) {
     return v.status === 'booked' && v.date === date &&
@@ -1229,7 +1350,6 @@ function renderIndList() {
     box.appendChild(card);
   });
 }
-
 function getTariffDurationText(t) {
   var cnt = Number(t.count) || 0;
   if (cnt === 16 || String(t.name).indexOf('16') !== -1) return 'Срок: 2 мес. (с даты 1-го визита)';
@@ -1538,7 +1658,7 @@ function renderAdminAll() {
   filterAdminClients(false);
 
   var sSel = document.getElementById('admManualClass'); sSel.innerHTML = '';
-  getNext7DaysSchedule().forEach(function(s) {
+  getNext7DaysSchedule().filter(function(s) { return !s.isInd; }).forEach(function(s) {
     addOpt(sSel, s.classId + '|' + s.date + '|' + s.time + '|' + s.day + '|' + s.title + '|' + s.teacher + '|' + s.location, fmtDate(s.date) + ' (' + s.day + ' ' + s.time + ') ' + s.title + ' — ' + s.location);
   });
 
