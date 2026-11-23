@@ -390,10 +390,10 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
   <button type="button" class="nav-item" onclick="showClientTab('tabProfile', this)"><span id="notifDot" class="nav-dot hidden"></span>👤<span>Кабинет</span></button>
 </div>
 
-<div id="guestNav" class="nav-bar hidden">
-  <button type="button" class="nav-item active" onclick="showClientTab('tabSchedule', this)">📅<span>Расписание</span></button>
-  <button type="button" class="nav-item" onclick="showClientTab('tabTariffs', this)">💳<span>Абонементы</span></button>
-  <button type="button" class="nav-item" onclick="exitGuestMode()">🔑<span>Войти</span></button>
+<div id="guestNav" class="nav-bar">
+  <button type="button" class="nav-item active" id="gNavAuth" onclick="showGuestSection('auth', this)">🔑<span>Вход</span></button>
+  <button type="button" class="nav-item" id="gNavSched" onclick="showGuestSection('tabSchedule', this)">📅<span>Расписание</span></button>
+  <button type="button" class="nav-item" id="gNavTariffs" onclick="showGuestSection('tabTariffs', this)">💳<span>Абонементы</span></button>
 </div>
 
 <div id="teacherNav" class="nav-bar hidden">
@@ -438,9 +438,37 @@ function normStr(s) { return String(s || '').trim().toLowerCase().replace(/ё/g,
 function togglePin(id) { var el = document.getElementById(id); el.type = (el.type === 'password') ? 'text' : 'password'; }
 function switchAuth(isReg) { document.getElementById('loginBox').classList.toggle('hidden', isReg); document.getElementById('regBox').classList.toggle('hidden', !isReg); }
 
-function enterGuestMode() {
+var guestLoaded = false;
+
+function showGuestSection(section, btn) {
+  document.querySelectorAll('#guestNav .nav-item').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+
+  if (section === 'auth') {
+    document.getElementById('authScreen').classList.remove('hidden');
+    document.getElementById('clientArea').classList.add('hidden');
+    document.getElementById('topSub').textContent = 'Красное Село • Кировский завод';
+    return;
+  }
+
+  function openGuestTab() {
+    document.getElementById('authScreen').classList.add('hidden');
+    document.getElementById('clientArea').classList.remove('hidden');
+    document.getElementById('topSub').textContent = 'Гостевой просмотр';
+    ['tabSchedule', 'tabGroups', 'tabInd', 'tabTariffs', 'tabProfile'].forEach(function(id) {
+      document.getElementById(id).classList.add('hidden');
+    });
+    document.getElementById(section).classList.remove('hidden');
+  }
+
+  if (guestLoaded) {
+    openGuestTab();
+    return;
+  }
+
   api({ action: 'guest_data' }, function(d) {
     if (d.status === 'success') {
+      guestLoaded = true;
       state = {
         user: { role: 'guest', name: 'Гость', phone: 'guest' },
         schedule: d.schedule || [],
@@ -448,19 +476,10 @@ function enterGuestMode() {
         tariffs: d.tariffs || [],
         visits: [], individual: [], payments: [], notifications: [], clientLogs: [], teachers: [], directions: [], clients: []
       };
-      document.getElementById('authScreen').classList.add('hidden');
-      document.getElementById('logoutBtn').classList.remove('hidden');
-      document.getElementById('logoutBtn').textContent = 'Войти';
-      document.getElementById('topSub').textContent = 'Гостевой просмотр';
-      document.getElementById('clientArea').classList.remove('hidden');
-      document.getElementById('guestNav').classList.remove('hidden');
       renderClientAll();
+      openGuestTab();
     }
   });
-}
-
-function exitGuestMode() {
-  location.reload();
 }
 
 function handlePhotoUpload(input, previewId, mode) {
@@ -552,6 +571,7 @@ function api(params, cb) {
 
 function openCabinetUI() {
   document.getElementById('authScreen').classList.add('hidden');
+document.getElementById('guestNav').classList.add('hidden');
   document.getElementById('logoutBtn').classList.remove('hidden');
   document.getElementById('logoutBtn').textContent = 'Выйти';
   var rName = state.user.role === 'admin' ? 'Администратор' : (state.user.role === 'teacher' ? 'Преподаватель' : 'Ученик');
