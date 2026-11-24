@@ -66,7 +66,7 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
 </head>
 <body>
 
-<input type="hidden" id="apiUrlField" value="https://script.google.com/macros/s/AKfycbzaYGPpBRMb2xLKjsVapbg9zcUyloH9S7QIfQXdjAk2SQ6kSY8fONbsZagi4uRV7Q6jhw/exec">
+<input type="hidden" id="apiUrlField" value="https://script.google.com/macros/s/AKfycbx_HPKAtptr4el9pM5wGs6cCSw07kYRd2Pk4xwVshjqNxRH14zRnro7fK9LowggWSMf1Q/exec">
 
 <div class="header">
   <div>
@@ -658,13 +658,50 @@ function addOpt(select, val, text) {
 
 function fmtDate(s) {
   var strVal = String(s || '').trim();
-  if (/^\d{4}-\d{2}-\d{2}/.test(strVal)) {
-    return strVal.slice(0, 10).split('-').reverse().join('.');
+  if (!strVal) return '';
+  if (strVal.indexOf('GMT') !== -1 || /^[A-Za-z]{3}\s+[A-Za-z]{3}\s+\d{1,2}/.test(strVal)) {
+    var parsed = new Date(strVal);
+    if (!isNaN(parsed.getTime())) {
+      var d = String(parsed.getDate()).padStart(2, '0');
+      var m = String(parsed.getMonth() + 1).padStart(2, '0');
+      var y = parsed.getFullYear();
+      var hh = String(parsed.getHours()).padStart(2, '0');
+      var mm = String(parsed.getMinutes()).padStart(2, '0');
+      return (hh === '00' && mm === '00') ? (d + '.' + m + '.' + y) : (d + '.' + m + '.' + y + ' ' + hh + ':' + mm);
+    }
+  }
+  var mIso = strVal.match(/^(\d{4})-(\d{2})-(\d{2})(?:\s+(\d{2}:\d{2}))?/);
+  if (mIso) {
+    return mIso.slice(1, 4).reverse().join('.') + (mIso.slice(4, 5).shift() ? ' ' + mIso.slice(4, 5).shift() : '');
+  }
+  var mRu = strVal.match(/^(\d{2}\.\d{2}\.\d{4})(?:\s+(\d{2}:\d{2}))?/);
+  if (mRu) {
+    return mRu.slice(1, 2).shift() + (mRu.slice(2, 3).shift() ? ' ' + mRu.slice(2, 3).shift() : '');
   }
   return strVal;
 }
 
+function fmtTextDates(txt) {
+  return String(txt || '').replace(/\b(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}\s+\d{4}(?:\s+\d{2}:\d{2}:\d{2})?(?:\s+GMT[+-]\d{4}(?:\s*\([^)]*\))?)?/g, function(match) {
+    return fmtDate(match);
+  });
+}
+
 function buildColorMap() {
+  var palette = [
+    { bg: '#dbeafe', border: '#2563eb', accent: '#1e3a8a' },
+    { bg: '#dcfce7', border: '#16a34a', accent: '#14532d' },
+    { bg: '#fef9c3', border: '#ca8a04', accent: '#713f12' },
+    { bg: '#f3e8ff', border: '#9333ea', accent: '#581c87' },
+    { bg: '#ffedd5', border: '#ea580c', accent: '#7c2d12' },
+    { bg: '#e0f2fe', border: '#0284c7', accent: '#0c4a6e' },
+    { bg: '#ecfccb', border: '#65a30d', accent: '#365314' },
+    { bg: '#f5efe6', border: '#a1887f', accent: '#4e342e' },
+    { bg: '#f1f5f9', border: '#64748b', accent: '#1e293b' },
+    { bg: '#fee2e2', border: '#dc2626', accent: '#7f1d1d' },
+    { bg: '#ffffff', border: '#6c5ce7', accent: '#2d3436' }
+  ];
+
   var keys = [];
   (state.schedule || []).forEach(function(s) {
     var k = normStr(s.title) + '|' + normStr(s.location) + '|' + normStr(s.teacher);
@@ -677,38 +714,17 @@ function buildColorMap() {
   });
   keys.sort();
 
-  var total = keys.length || 1;
-  var step = 1;
-  for (var c = Math.max(2, Math.floor(total * 0.38)); c < total; c++) {
-    if (gcd(c, total) === 1) { step = c; break; }
-  }
-
   var map = {};
   keys.forEach(function(k, idx) {
-    var spreadIdx = (idx * step) % total;
-    var hue = Math.round((spreadIdx * 360) / total) % 360;
-    var isAlt = (idx % 2 === 1);
-    var bgLight = isAlt ? 88 : 93;
-    var sat = isAlt ? 85 : 78;
-
-    map[k] = {
-      bg: 'hsl(' + hue + ', ' + sat + '%, ' + bgLight + '%)',
-      border: 'hsl(' + hue + ', 75%, 45%)',
-      accent: 'hsl(' + hue + ', 80%, 26%)'
-    };
+    map[k] = palette[idx % palette.length];
   });
   return map;
-}
-
-function gcd(a, b) {
-  while (b !== 0) { var t = b; b = a % b; a = t; }
-  return a;
 }
 
 function getLessonStyle(title, location, teacher, colorMap) {
   var k = normStr(title) + '|' + normStr(location) + '|' + normStr(teacher);
   if (colorMap && colorMap[k]) return colorMap[k];
-  return { bg: '#e0e7ff', border: '#4f46e5', accent: '#1e1b4b' };
+  return { bg: '#dbeafe', border: '#2563eb', accent: '#1e3a8a' };
 }
 
 function toYMD(d) {
@@ -764,7 +780,7 @@ function openClientQuickModal(phoneOrName) {
     lh.style.fontWeight = '700'; lh.style.fontSize = '13px'; lh.style.marginTop = '10px';
     body.appendChild(lh);
     logs.slice(0, 8).forEach(function(l) {
-      var r = el('div', '', '• ' + l.date + ' — ' + l.text);
+      var r = el('div', '', '• ' + fmtDate(l.date) + ' — ' + fmtTextDates(l.text));
       r.style.fontSize = '12px'; r.style.color = 'var(--m)'; r.style.marginTop = '3px';
       body.appendChild(r);
     });
@@ -897,8 +913,12 @@ function getNext7DaysSchedule() {
 
 function buildAttendeesNode(classId, targetDate, showDateTag) {
   var box = el('div', 'attendees-box');
+  var todayYMD = toYMD(new Date());
   var list = (state.publicBookings || []).filter(function(b) {
-    return b.classId === classId && (!targetDate || !b.date || b.date === targetDate);
+    var matchClass = (b.classId === classId);
+    var isUpcoming = (!b.date || b.date >= todayYMD);
+    var matchDate = targetDate ? (b.date === targetDate) : isUpcoming;
+    return matchClass && matchDate && b.status === 'booked';
   });
   if (!list.length) {
     box.style.fontSize = '12px';
@@ -940,8 +960,7 @@ function buildAttendeesNode(classId, targetDate, showDateTag) {
     }
     var gIcon = (b.gender === 'M') ? '🕺 ' : '💃 ';
     var dTag = (showDateTag && b.date) ? ' (' + fmtDate(b.date) + ')' : '';
-    var stMark = (b.status === 'visited') ? ' ✅' : '';
-    chip.appendChild(document.createTextNode(gIcon + b.clientName + dTag + stMark));
+    chip.appendChild(document.createTextNode(gIcon + b.clientName + dTag));
     box.appendChild(chip);
   });
   return box;
@@ -997,8 +1016,11 @@ function renderGroupsPool(containerId, mode) {
   var box = document.getElementById(containerId);
   if (!box) return;
   box.innerHTML = '';
+  var todayYMD = toYMD(new Date());
   var upcoming = getNext7DaysSchedule().filter(function(c) { return !c.isInd; });
-  var bookedOnly = (state.publicBookings || []).filter(function(b) { return b.status === 'booked'; });
+  var bookedOnly = (state.publicBookings || []).filter(function(b) {
+    return b.status === 'booked' && (!b.date || b.date >= todayYMD);
+  });
 
   if (!upcoming.length && !bookedOnly.length) {
     box.appendChild(el('div', 'card', 'На ближайшие 7 дней групп не найдено'));
@@ -1191,7 +1213,7 @@ function checkNotifications() {
   if (dot) dot.classList.toggle('hidden', unread.length === 0);
   if (unread.length) {
     var latest = unread.slice(0, 1).pop();
-    var nb = el('div', 'alert-box', '🔔 ' + latest.text + (unread.length > 1 ? ' (и ещё ' + (unread.length - 1) + ' в Кабинете)' : ''));
+    var nb = el('div', 'alert-box', '🔔 ' + fmtTextDates(latest.text) + (unread.length > 1 ? ' (и ещё ' + (unread.length - 1) + ' в Кабинете)' : ''));
     nb.style.background = '#ede9fe'; nb.style.borderLeftColor = 'var(--p)'; nb.style.color = 'var(--t)';
     box.appendChild(nb);
   }
@@ -1289,7 +1311,10 @@ function renderWeekGrid(containerId, lessons) {
       var empty = el('div', 'hint', 'Нет уроков'); empty.style.textAlign = 'center'; empty.style.fontSize = '13px'; col.appendChild(empty);
     } else {
       dayLessons.forEach(function(cls) {
-        var cnt = (state.publicBookings || []).filter(function(b) { return b.classId === cls.classId && (!b.date || b.date === cls.date); }).length;
+        var todayYMD = toYMD(new Date());
+        var cnt = (state.publicBookings || []).filter(function(b) {
+          return b.classId === cls.classId && b.status === 'booked' && (!b.date || b.date >= todayYMD) && (!cls.date || b.date === cls.date);
+        }).length;
         var pal = getLessonStyle(cls.title, cls.location, cls.teacher, colorMap);
         var item = el('div', 'grid-lesson');
         item.style.background = pal.bg;
@@ -1457,8 +1482,8 @@ function renderProfile() {
     notifs.forEach(function(n) {
       var nc = el('div', 'card');
       nc.style.padding = '10px 12px'; nc.style.fontSize = '13px'; nc.style.borderLeft = '4px solid var(--p)';
-      nc.appendChild(el('div', '', n.text));
-      var dt = el('div', '', n.date); dt.style.fontSize = '11px'; dt.style.color = 'var(--m)'; dt.style.marginTop = '3px';
+      nc.appendChild(el('div', '', fmtTextDates(n.text)));
+      var dt = el('div', '', fmtDate(n.date)); dt.style.fontSize = '11px'; dt.style.color = 'var(--m)'; dt.style.marginTop = '3px';
       nc.appendChild(dt);
       nBox.appendChild(nc);
     });
@@ -1494,8 +1519,8 @@ function renderProfile() {
     } else {
       logs.slice(0, 25).forEach(function(lg) {
         var lc = el('div', 'card'); lc.style.padding = '9px 12px'; lc.style.fontSize = '12.5px';
-        lc.appendChild(el('div', '', lg.text));
-        var dtm = el('div', '', lg.date); dtm.style.fontSize = '11px'; dtm.style.color = 'var(--m)'; dtm.style.marginTop = '2px';
+        lc.appendChild(el('div', '', fmtTextDates(lg.text)));
+        var dtm = el('div', '', fmtDate(lg.date)); dtm.style.fontSize = '11px'; dtm.style.color = 'var(--m)'; dtm.style.marginTop = '2px';
         lc.appendChild(dtm);
         lBox.appendChild(lc);
       });
@@ -1768,7 +1793,8 @@ function renderAdminSched() {
     card.appendChild(r);
     var h = el('h4', '', s.title); h.style.margin = '6px 0 2px'; card.appendChild(h);
     var sub = el('div', '', 'Педагог: ' + s.teacher); sub.style.fontSize = '13px'; sub.style.color = 'var(--m)'; card.appendChild(sub);
-    card.appendChild(buildAttendeesNode(s.classId, '', true));
+    var nextMatch = getNext7DaysSchedule().find(function(x) { return x.classId === s.classId; });
+    card.appendChild(buildAttendeesNode(s.classId, nextMatch ? nextMatch.date : '', true));
     var br = el('div', 'row'); br.style.marginTop = '8px';
     var b1 = el('button', 'btn-o btn-sm', 'Изменить'); b1.type = 'button'; b1.onclick = function() { editSched(s.classId); };
     var b2 = el('button', 'btn-d btn-sm', 'Удалить'); b2.type = 'button'; b2.onclick = function() { delSched(s.classId); };
@@ -1870,6 +1896,20 @@ function extendClientSub(phone) {
   });
 }
 
+function assignTariffToClient(phone) {
+  var sel = document.getElementById('admAssignTariffSel');
+  var tariffId = sel ? sel.value : '';
+  if (!tariffId) return alert('Выберите абонемент из списка');
+  var tObj = (state.tariffs || []).find(function(t) { return t.tariffId === tariffId; });
+  var tName = tObj ? tObj.name : 'выбранный абонемент';
+  if (!confirm('Начислить ученику «' + tName + '»?')) return;
+
+  api({ action: 'admin_assign_tariff', phone: phone, tariffId: tariffId }, function(d) {
+    alert(d.message);
+    if (d.status === 'success') doLogin(true);
+  });
+}
+
 function inspectClient() {
   var ph = document.getElementById('admInspectSelect').value;
   var c = state.clients.find(function(x) { return x.phone === ph; }); if (!c) return;
@@ -1901,6 +1941,17 @@ function inspectClient() {
   extRow.appendChild(extInp); extRow.appendChild(extBtn);
   card.appendChild(extRow);
 
+  var assignRow = el('div', 'row'); assignRow.style.marginTop = '8px';
+  var assignSel = document.createElement('select');
+  assignSel.id = 'admAssignTariffSel'; assignSel.style.marginTop = '0';
+  (state.tariffs || []).forEach(function(t) {
+    addOpt(assignSel, t.tariffId, t.name + ' (' + t.price + ' ₽)');
+  });
+  var assignBtn = el('button', 'btn-sm', 'Выдать абонемент'); assignBtn.type = 'button';
+  assignBtn.onclick = function() { assignTariffToClient(c.phone); };
+  assignRow.appendChild(assignSel); assignRow.appendChild(assignBtn);
+  card.appendChild(assignRow);
+
   card.appendChild(el('hr'));
   card.appendChild(el('strong', '', 'История посещений (' + hist.length + '):'));
   hist.forEach(function(h) {
@@ -1913,14 +1964,13 @@ function inspectClient() {
     card.appendChild(el('hr'));
     card.appendChild(el('strong', '', 'Журнал событий по клиенту (' + logs.length + '):'));
     logs.slice(0, 20).forEach(function(lg) {
-      var lrow = el('div', '', '• ' + lg.date + ' — ' + lg.text);
+      var lrow = el('div', '', '• ' + fmtDate(lg.date) + ' — ' + fmtTextDates(lg.text));
       lrow.style.fontSize = '12px'; lrow.style.color = 'var(--m)'; lrow.style.marginTop = '3px';
       card.appendChild(lrow);
     });
   }
   box.appendChild(card);
 }
-
 function fillReportMonths() {
   var sel = document.getElementById('admReportMonth');
   if (!sel) return;
