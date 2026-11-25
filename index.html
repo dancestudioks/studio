@@ -66,7 +66,7 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
 </head>
 <body>
 
-<input type="hidden" id="apiUrlField" value="https://script.google.com/macros/s/AKfycbx_HPKAtptr4el9pM5wGs6cCSw07kYRd2Pk4xwVshjqNxRH14zRnro7fK9LowggWSMf1Q/exec">
+<input type="hidden" id="apiUrlField" value="https://script.google.com/macros/s/AKfycbxzT--Ccz0pFZey3tCZ2VEKxduJr_hmose8xp_iKPWjhKFunRsMNVV0M5ykW_7_1mBZDQ/exec">
 
 <div class="header">
   <div>
@@ -127,8 +127,10 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
 
     <div id="regBox" class="card hidden">
       <h3 style="margin-top:0">Регистрация нового ученика</h3>
-      <input type="text" id="rName" placeholder="Фамилия и Имя *">
-      <div class="hint">Обязательно. Например: Иванова Анна (будет видно в списке группы)</div>
+      <input type="text" id="rLastName" placeholder="Фамилия *">
+      <div class="hint">Обязательно. Например: Иванова (будет отображаться первой при поиске)</div>
+      <input type="text" id="rFirstName" placeholder="Имя *">
+      <div class="hint">Обязательно. Например: Анна</div>
       <input type="tel" id="rPhone" oninput="cleanDigits(this)" placeholder="Телефон (79991234567) *">
       <div class="hint">Обязательно. Только 11 цифр без «+», пробелов и скобок</div>
       <input type="text" id="rPin" maxlength="4" inputmode="numeric" oninput="cleanDigits(this)" placeholder="Придумайте PIN-код (4 цифры) *">
@@ -352,6 +354,12 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
       </div>
       <div id="subDicts">
         <div class="card">
+          <h4 style="margin-top:0">📢 Объявление / новость для всех пользователей</h4>
+          <input type="text" id="admBroadcastText" placeholder="Текст объявления (например: В субботу перенос занятия...)">
+          <div class="hint">Уведомление придёт всем ученикам и преподавателям в личный кабинет</div>
+          <button type="button" class="btn-s" onclick="sendBroadcastNews()">Отправить всем пользователям</button>
+        </div>
+        <div class="card">
           <h4 style="margin-top:0">Преподаватели</h4>
           <div class="row">
             <input type="text" id="newTeacherName" placeholder="Имя и фамилия педагога" style="margin:0">
@@ -377,6 +385,7 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
       </div>
       <div id="subClients" class="hidden">
         <h4>Просмотр личного кабинета ученика</h4>
+        <input type="text" id="admSchoolClientSearch" oninput="filterSchoolClients()" placeholder="🔍 Поиск по совпадающим буквам фамилии или имени...">
         <select id="admInspectSelect" onchange="inspectClient()"></select>
         <div id="admInspectCard"></div>
       </div>
@@ -623,9 +632,14 @@ function logout() {
 }
 
 function doRegister() {
+  var lastName = document.getElementById('rLastName').value.trim();
+  var firstName = document.getElementById('rFirstName').value.trim();
+  if (!lastName || !firstName) return alert('Укажите отдельно Фамилию и Имя');
+  var fullName = lastName.charAt(0).toUpperCase() + lastName.slice(1) + ' ' + firstName.charAt(0).toUpperCase() + firstName.slice(1);
+
   var p = {
     action: 'register',
-    name: document.getElementById('rName').value.trim(),
+    name: fullName,
     phone: document.getElementById('rPhone').value.replace(/\D/g, '').trim(),
     pin: document.getElementById('rPin').value.replace(/\D/g, '').trim(),
     gender: document.getElementById('rGender').value,
@@ -904,7 +918,16 @@ function getNext7DaysSchedule() {
     });
   }
 
+  var nowObj = new Date();
+  var nowYMD = toYMD(nowObj);
+  var nowHHMM = String(nowObj.getHours()).padStart(2, '0') + ':' + String(nowObj.getMinutes()).padStart(2, '0');
+
+  result.forEach(function(item) {
+    item.isPastToday = (item.date === nowYMD && String(item.time || '') < nowHHMM);
+  });
+
   result.sort(function(a, b) {
+    if (a.isPastToday !== b.isPastToday) return a.isPastToday ? 1 : -1;
     if (a.date !== b.date) return a.date < b.date ? -1 : 1;
     return String(a.time || '') < String(b.time || '') ? -1 : 1;
   });
@@ -1258,8 +1281,10 @@ function renderSchedule() {
         (v.classId === cls.classId || (v.time === cls.time && normStr(v.title) === normStr(cls.title) && normStr(v.location) === normStr(cls.location)));
     });
     var card = el('div', 'card');
+    if (cls.isPastToday) card.style.opacity = '0.68';
     var topRow = el('div', 'row');
-    topRow.appendChild(el('span', 'badge' + (cls.isInd ? ' badge-ind' : ''), (cls.isToday ? '🔥 СЕГОДНЯ • ' : '') + cls.day + ' • ' + fmtDate(cls.date) + ' в ' + cls.time));
+    var timePrefix = cls.isPastToday ? '🕒 ПРОШЛО СЕГОДНЯ • ' : (cls.isToday ? '🔥 СЕГОДНЯ • ' : '');
+    topRow.appendChild(el('span', 'badge' + (cls.isInd ? ' badge-ind' : ''), timePrefix + cls.day + ' • ' + fmtDate(cls.date) + ' в ' + cls.time));
     topRow.appendChild(el('span', 'badge badge-loc', cls.location));
     card.appendChild(topRow);
     var h = el('h4', '', (cls.isInd ? '💃 ' : '') + cls.title); h.style.margin = '8px 0 4px'; card.appendChild(h);
@@ -1273,7 +1298,7 @@ function renderSchedule() {
       card.appendChild(buildAttendeesNode(cls.classId, cls.date, false));
     }
 
-    if (state.user.role === 'client' && !cls.isInd) {
+    if (state.user.role === 'client' && !cls.isInd && !cls.isPastToday) {
       var btn = el('button', booked ? 'btn-d' : '', booked ? 'Отменить мою запись' : 'Запланировать посещение');
       btn.type = 'button';
       btn.onclick = function() {
@@ -1306,7 +1331,8 @@ function renderWeekGrid(containerId, lessons) {
     head.style.fontSize = '14px';
     col.appendChild(head);
 
-    var dayLessons = lessons.filter(function(l) { return normStr(l.day) === normStr(dayName); });
+    var dayLessons = lessons.filter(function(l) { return normStr(l.day) === normStr(dayName); })
+      .sort(function(a, b) { return String(a.time || '') < String(b.time || '') ? -1 : 1; });
     if (!dayLessons.length) {
       var empty = el('div', 'hint', 'Нет уроков'); empty.style.textAlign = 'center'; empty.style.fontSize = '13px'; col.appendChild(empty);
     } else {
@@ -1639,7 +1665,7 @@ function filterAdminClients(showDrop) {
   drop.innerHTML = '';
   var list = (state.clients || []).filter(function(c) {
     return c.role === 'client' && (!q || normStr(c.name).indexOf(q) !== -1 || String(c.phone).indexOf(q) !== -1);
-  });
+  }).sort(function(a, b) { return normStr(a.name).localeCompare(normStr(b.name), 'ru'); });
 
   if (!list.length) {
     var empty = el('div', 'excel-opt', 'Совпадений не найдено');
@@ -1770,15 +1796,10 @@ function renderAdminAll() {
 
   renderDicts();
   renderGroupsPool('admGroupsPoolList', admGroupByMode);
-  var insp = document.getElementById('admInspectSelect'); insp.innerHTML = '';
-  state.clients.filter(function(c) { return c.role === 'client'; }).forEach(function(c) {
-    addOpt(insp, c.phone, c.name + ' (+' + c.phone + ')');
-  });
-  inspectClient();
+  filterSchoolClients();
   fillReportMonths();
   renderAnalytics();
 }
-
 function renderAdminSched() {
   if (admSchedViewMode === 'grid') {
     renderWeekGrid('admSchedGrid', getNext7DaysSchedule());
@@ -1802,6 +1823,7 @@ function renderAdminSched() {
     schedBox.appendChild(card);
   });
 }
+
 function saveScheduleItem() {
   var p = { action: 'save_schedule', classId: document.getElementById('editClassId').value, day: document.getElementById('sDay').value, date: document.getElementById('sDate').value, time: document.getElementById('sTime').value, location: document.getElementById('sLoc').value, title: document.getElementById('sDirSelect').value, teacher: document.getElementById('sTeacherSelect').value };
   if (!p.title || !p.teacher) return alert('Заполните направление и педагога');
@@ -1854,6 +1876,17 @@ function renderDicts() {
 function addDictItem(type) { var inp = document.getElementById(type === 'teacher' ? 'newTeacherName' : 'newDirName'); var val = inp.value.trim(); if (val) api({ action: type === 'teacher' ? 'add_teacher' : 'add_direction', name: val }, function() { inp.value = ''; doLogin(true); }); }
 function editDictItem(type, id, oldName) { var newName = prompt('Введите новое название:', oldName); if (newName && newName.trim() !== oldName) api({ action: type === 'teacher' ? 'edit_teacher' : 'edit_direction', id: id, name: newName.trim() }, function() { doLogin(true); }); }
 function delDictItem(type, id) { if (confirm('Удалить запись?')) api({ action: type === 'teacher' ? 'delete_teacher' : 'delete_direction', id: id }, function() { doLogin(true); }); }
+
+function sendBroadcastNews() {
+  var inp = document.getElementById('admBroadcastText');
+  var txt = inp ? inp.value.trim() : '';
+  if (!txt) return alert('Введите текст объявления или новости');
+  if (!confirm('Отправить это объявление всем пользователям студии?')) return;
+  api({ action: 'broadcast_news', text: txt }, function(d) {
+    alert(d.message);
+    if (d.status === 'success') inp.value = '';
+  });
+}
 
 function adminManualVisit() {
   var phones = Object.keys(pickedClientsMap);
@@ -1908,6 +1941,35 @@ function assignTariffToClient(phone) {
     alert(d.message);
     if (d.status === 'success') doLogin(true);
   });
+}
+
+function filterSchoolClients() {
+  var inp = document.getElementById('admSchoolClientSearch');
+  var sel = document.getElementById('admInspectSelect');
+  if (!sel) return;
+  var q = normStr(inp ? inp.value : '');
+  var prevVal = sel.value;
+
+  var sortedClients = (state.clients || [])
+    .filter(function(c) { return c.role === 'client'; })
+    .sort(function(a, b) { return normStr(a.name).localeCompare(normStr(b.name), 'ru'); })
+    .filter(function(c) {
+      return !q || normStr(c.name).indexOf(q) !== -1 || String(c.phone).indexOf(q) !== -1;
+    });
+
+  sel.innerHTML = '';
+  if (!sortedClients.length) {
+    addOpt(sel, '', 'Совпадений не найдено');
+    document.getElementById('admInspectCard').innerHTML = '';
+    return;
+  }
+  sortedClients.forEach(function(c) {
+    addOpt(sel, c.phone, c.name + ' (+' + c.phone + ')');
+  });
+  if (prevVal && sortedClients.some(function(c) { return c.phone === prevVal; })) {
+    sel.value = prevVal;
+  }
+  inspectClient();
 }
 
 function inspectClient() {
@@ -1971,6 +2033,7 @@ function inspectClient() {
   }
   box.appendChild(card);
 }
+
 function fillReportMonths() {
   var sel = document.getElementById('admReportMonth');
   if (!sel) return;
@@ -2008,10 +2071,20 @@ function renderAnalytics() {
   var popular = Object.keys(styles).sort(function(a, b) { return styles[b] - styles[a]; });
   var debtors = state.clients.filter(function(c) { return c.balance <= 0 && c.role === 'client'; }).length;
 
+  var clientCounts = {};
+  visited.forEach(function(v) {
+    var key = (v.clientName || 'Ученик') + ' (+' + v.phone + ')';
+    clientCounts[key] = (clientCounts[key] || 0) + 1;
+  });
+  var topClients = Object.keys(clientCounts).sort(function(a, b) { return clientCounts[b] - clientCounts[a]; });
+  var topLeader = topClients.slice(0, 1).shift();
+  var topClientText = topLeader ? (topLeader + ' — ' + clientCounts[topLeader] + ' виз.') : 'нет данных за месяц';
+
   var box = document.getElementById('admStatsBox'); box.innerHTML = '';
   var c1 = el('div', 'card'); c1.appendChild(el('strong', '', 'Итоги работы за ' + labelYm));
   c1.appendChild(el('div', '', '• Подтвержденных визитов за месяц: ' + visited.length));
   c1.appendChild(el('div', '', '• Оплаченных абонементов за месяц: ' + monthPays.length + ' шт. (' + revenue + ' ₽)'));
+  c1.appendChild(el('div', '', '• 🏆 Самый активный ученик месяца: ' + topClientText));
   c1.appendChild(el('div', '', '• Всего учеников в базе: ' + state.clients.filter(function(c) { return c.role === 'client'; }).length));
   c1.appendChild(el('div', '', '• Учеников с нулевым/отрицательным балансом: ' + debtors));
   box.appendChild(c1);
