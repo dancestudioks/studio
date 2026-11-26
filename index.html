@@ -26,14 +26,15 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
 .attendees-box{background:#f8f9fa;border-radius:10px;padding:8px 10px;margin:8px 0;border:1px solid #edf2f7}
 .attendee-chip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid #dfe6e9;border-radius:16px;padding:3px 9px 3px 4px;font-size:12px;margin:3px 4px 3px 0;color:var(--t)}
 .clickable-client{cursor:pointer;text-decoration:underline dotted var(--p)}
+.clickable-photo{cursor:zoom-in}
 .mini-av{width:22px;height:22px;border-radius:50%;object-fit:cover;background:#ede9fe;color:var(--p);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
 .alert-box{background:#fff3cd;border-left:4px solid #ffc107;padding:11px 12px;border-radius:10px;margin-bottom:10px;font-size:13px;color:#856404;line-height:1.4}
 .alert-danger{background:#ffe6e6;border-left:4px solid var(--d);color:#721c24}
 .nav-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #dfe6e9;display:flex;justify-content:space-between;padding:8px 4px calc(8px + env(safe-area-inset-bottom));z-index:100;gap:2px}
 .nav-item{background:none;border:none;color:var(--m);font-size:12.5px;margin:0;padding:4px 2px;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.3px}
 .nav-item.active{color:var(--p);font-weight:700}
-.nav-dot{position:absolute;top:2px;right:14px;width:8px;height:8px;background:var(--d);border-radius:50%}
-@media(max-width:360px){.nav-item{font-size:11px;letter-spacing:-0.4px}}
+.nav-dot{position:absolute;top:2px;right:18px;width:8px;height:8px;background:var(--d);border-radius:50%}
+@media(max-width:360px){.nav-item{font-size:11.5px;letter-spacing:-0.4px}}
 .day-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px}
 .day-tab{width:auto;margin:0;padding:7px 13px;background:#fff;color:var(--t);border:1px solid #dfe6e9;border-radius:20px;font-size:13px;white-space:nowrap}
 .day-tab.active{background:var(--p);color:#fff;border-color:var(--p)}
@@ -56,6 +57,8 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
 .grid-lesson{border-radius:11px;padding:11px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.05);cursor:pointer;border:1px solid transparent;border-left-width:5px}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:14px}
 .modal-card{background:#fff;border-radius:18px;padding:16px;width:100%;max-width:460px;max-height:85vh;overflow-y:auto}
+.full-photo-bg{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:350;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+.full-photo-img{max-width:100%;max-height:82vh;border-radius:14px;object-fit:contain;box-shadow:0 6px 24px rgba(0,0,0,0.5)}
 .excel-search-wrap{margin-top:8px}
 .excel-search-wrap input{margin-top:0}
 .excel-dropdown{background:#fff;border:1px solid var(--p);border-top:none;border-radius:0 0 12px 12px;max-height:220px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.08)}
@@ -66,7 +69,7 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
 </head>
 <body>
 
-<input type="hidden" id="apiUrlField" value="https://script.google.com/macros/s/AKfycbxzT--Ccz0pFZey3tCZ2VEKxduJr_hmose8xp_iKPWjhKFunRsMNVV0M5ykW_7_1mBZDQ/exec">
+<input type="hidden" id="apiUrlField" value="https://script.google.com/macros/s/AKfycbwsJIsaxNSMxYUUG0j0kp71NgVZ6suPO-lejSsJ4kaiwpL3OatIWzy3S2m4pG41mjcs/exec">
 
 <div class="header">
   <div>
@@ -106,6 +109,12 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
     </div>
     <div id="peerBody" style="margin-top:10px"></div>
   </div>
+</div>
+
+<div id="fullPhotoModal" class="full-photo-bg hidden" onclick="closeFullPhotoModal()">
+  <img id="fullPhotoImg" class="full-photo-img" src="" alt="Фото">
+  <div id="fullPhotoCaption" style="color:#fff;font-size:15px;font-weight:600;margin-top:12px;text-align:center"></div>
+  <div style="color:#b2bec3;font-size:12px;margin-top:4px">Нажмите в любом месте, чтобы закрыть</div>
 </div>
 <div class="container">
   <div id="loader" class="card hidden" style="text-align:center;color:var(--p);font-weight:600">Обновление данных...</div>
@@ -348,7 +357,6 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
     <div id="admTabSchool" class="hidden">
       <div class="sub-tabs">
         <button type="button" class="sub-tab active" onclick="showSchoolSub('subDicts', this)">Педагоги и стили</button>
-        <button type="button" class="sub-tab" onclick="showSchoolSub('subGroups', this)">Группы</button>
         <button type="button" class="sub-tab" onclick="showSchoolSub('subClients', this)">Ученики</button>
         <button type="button" class="sub-tab" onclick="showSchoolSub('subStats', this)">Отчеты</button>
       </div>
@@ -376,13 +384,6 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
           <div id="dirsListBox" style="margin-top:10px"></div>
         </div>
       </div>
-      <div id="subGroups" class="hidden">
-        <div class="sub-tabs">
-          <button type="button" class="sub-tab active" id="admBtnGrpDate" onclick="setAdmGroupBy('date')">📅 По ближайшим датам</button>
-          <button type="button" class="sub-tab" id="admBtnGrpDir" onclick="setAdmGroupBy('dir')">💃 По группам и стилям</button>
-        </div>
-        <div id="admGroupsPoolList"></div>
-      </div>
       <div id="subClients" class="hidden">
         <h4>Просмотр личного кабинета ученика</h4>
         <input type="text" id="admSchoolClientSearch" oninput="filterSchoolClients()" placeholder="🔍 Поиск по совпадающим буквам фамилии или имени...">
@@ -403,7 +404,6 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
 
 <div id="clientNav" class="nav-bar hidden">
   <button type="button" class="nav-item active" onclick="showClientTab('tabSchedule', this)">📅<span>Расписание</span></button>
-  <button type="button" class="nav-item" onclick="showClientTab('tabGroups', this)">👥<span>Группы</span></button>
   <button type="button" class="nav-item" onclick="showClientTab('tabInd', this)">💃<span>Индивы</span></button>
   <button type="button" class="nav-item" onclick="showClientTab('tabTariffs', this)">💳<span>Абонементы</span></button>
   <button type="button" class="nav-item" onclick="showClientTab('tabProfile', this)"><span id="notifDot" class="nav-dot hidden"></span>👤<span>Кабинет</span></button>
@@ -427,7 +427,7 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
   <button type="button" class="nav-item" onclick="showAdminTab('admTabSchool', this)">🏫<span>Школа</span></button>
 </div>
 <script>
-var state = { user: null, schedule: [], visits: [], publicBookings: [], confirmedInds: [], individual: [], tariffs: [], payments: [], notifications: [], clientLogs: [], teachers: [], directions: [], clients: [] };
+var state = { user: null, schedule: [], visits: [], publicBookings: [], confirmedInds: [], peerVisitedMap: {}, individual: [], tariffs: [], payments: [], notifications: [], clientLogs: [], teachers: [], directions: [], clients: [] };
 var selectedDay = 'Все';
 var schedViewMode = 'list';
 var admSchedViewMode = 'list';
@@ -435,7 +435,6 @@ var uploadedRegPhoto = '';
 var uploadedEditPhoto = '';
 var isBusy = false;
 var groupByMode = 'date';
-var admGroupByMode = 'date';
 var pickedClientsMap = {};
 var guestLoaded = false;
 
@@ -492,6 +491,7 @@ function showGuestSection(section, btn) {
         schedule: d.schedule || [],
         publicBookings: d.publicBookings || [],
         confirmedInds: d.confirmedInds || [],
+        peerVisitedMap: d.peerVisitedMap || {},
         tariffs: d.tariffs || [],
         visits: [], individual: [], payments: [], notifications: [], clientLogs: [], teachers: [], directions: [], clients: []
       };
@@ -509,7 +509,7 @@ function handlePhotoUpload(input, previewId, mode) {
     var img = new Image();
     img.onload = function() {
       var canvas = document.createElement('canvas');
-      var size = 140;
+      var size = 240;
       canvas.width = size;
       canvas.height = size;
       var ctx = canvas.getContext('2d');
@@ -517,7 +517,7 @@ function handlePhotoUpload(input, previewId, mode) {
       var sx = (img.width - minSide) / 2;
       var sy = (img.height - minSide) / 2;
       ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
-      var dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+      var dataUrl = canvas.toDataURL('image/jpeg', 0.78);
       if (mode === 'reg') uploadedRegPhoto = dataUrl;
       else uploadedEditPhoto = dataUrl;
       var prev = document.getElementById(previewId);
@@ -670,6 +670,17 @@ function addOpt(select, val, text) {
   select.appendChild(o);
 }
 
+function openFullPhotoModal(photoSrc, captionText) {
+  if (!photoSrc) return;
+  document.getElementById('fullPhotoImg').src = photoSrc;
+  document.getElementById('fullPhotoCaption').textContent = captionText || '';
+  document.getElementById('fullPhotoModal').classList.remove('hidden');
+}
+
+function closeFullPhotoModal() {
+  document.getElementById('fullPhotoModal').classList.add('hidden');
+}
+
 function fmtDate(s) {
   var strVal = String(s || '').trim();
   if (!strVal) return '';
@@ -759,7 +770,9 @@ function openClientQuickModal(phoneOrName) {
   var top = el('div', 'row');
   top.style.justifyContent = 'flex-start'; top.style.gap = '14px'; top.style.marginBottom = '12px';
   if (c.photo) {
-    var img = el('img', 'avatar-lg'); img.src = c.photo; top.appendChild(img);
+    var img = el('img', 'avatar-lg clickable-photo'); img.src = c.photo;
+    img.onclick = function() { openFullPhotoModal(c.photo, c.name); };
+    top.appendChild(img);
   } else {
     top.appendChild(el('div', 'avatar-lg', c.name.charAt(0)));
   }
@@ -807,14 +820,16 @@ function closeClientQuickModal() {
   document.getElementById('clientQuickModal').classList.add('hidden');
 }
 
-function openPeerModal(peerName, peerPhoto, peerGender) {
+function openPeerModal(peerPhone, peerName, peerPhoto, peerGender) {
   var body = document.getElementById('peerBody');
   body.innerHTML = '';
 
   var top = el('div', 'row');
   top.style.justifyContent = 'flex-start'; top.style.gap = '14px'; top.style.marginBottom = '12px';
   if (peerPhoto) {
-    var img = el('img', 'avatar-lg'); img.src = peerPhoto; top.appendChild(img);
+    var img = el('img', 'avatar-lg clickable-photo'); img.src = peerPhoto;
+    img.onclick = function() { openFullPhotoModal(peerPhoto, peerName); };
+    top.appendChild(img);
   } else {
     top.appendChild(el('div', 'avatar-lg', String(peerName || 'У').charAt(0)));
   }
@@ -824,36 +839,42 @@ function openPeerModal(peerName, peerPhoto, peerGender) {
   var gd = el('div', '', peerGender === 'M' ? '🕺 Мальчик' : '💃 Девочка');
   gd.style.fontSize = '13px'; gd.style.color = 'var(--m)'; gd.style.marginTop = '4px';
   titleCol.appendChild(gd);
+  if (peerPhoto) {
+    var zoomHint = el('div', '', '🔍 Нажмите на фото, чтобы открыть на весь экран');
+    zoomHint.style.fontSize = '11px'; zoomHint.style.color = 'var(--p)'; zoomHint.style.marginTop = '4px';
+    titleCol.appendChild(zoomHint);
+  }
   top.appendChild(titleCol);
   body.appendChild(top);
 
-  var userItems = (state.publicBookings || []).filter(function(b) {
-    return normStr(b.clientName) === normStr(peerName);
-  });
+  var summary = (state.peerVisitedMap && peerPhone) ? state.peerVisitedMap[peerPhone] : null;
+  var items = (summary && summary.items) ? summary.items : [];
+  var headerText = (summary && summary.mode === 'active')
+    ? 'Посещает по действующему абонементу:'
+    : 'Последние 4 посещения:';
 
-  var uniqueGroups = [];
-  var seen = {};
-  userItems.forEach(function(b) {
-    var tm = b.time;
-    if (!tm && b.classId) {
-      var clsObj = (state.schedule || []).find(function(s) { return s.classId === b.classId; });
-      if (clsObj) tm = clsObj.time;
-    }
-    var key = normStr(b.title) + '|' + normStr(b.location) + '|' + (b.date || '') + '|' + (tm || '');
-    if (!seen[key]) {
-      seen[key] = true;
-      uniqueGroups.push({ title: b.title, location: b.location, date: b.date, time: tm });
-    }
-  });
-
-  var gh = el('div', '', 'Группы, которые посещает (' + uniqueGroups.length + '):');
+  var gh = el('div', '', headerText);
   gh.style.fontWeight = '700'; gh.style.fontSize = '14px'; gh.style.marginBottom = '6px';
   body.appendChild(gh);
 
-  if (!uniqueGroups.length) {
-    body.appendChild(el('div', 'hint', 'Пока нет активных записей в группы'));
+  if (!items.length) {
+    body.appendChild(el('div', 'hint', 'Пока нет подтверждённых посещений'));
   } else {
-    uniqueGroups.forEach(function(g) {
+    var seenUnique = {};
+    var displayList = [];
+    items.forEach(function(it) {
+      if (summary.mode === 'active') {
+        var uk = normStr(it.title) + '|' + normStr(it.location);
+        if (!seenUnique[uk]) {
+          seenUnique[uk] = true;
+          displayList.push(it);
+        }
+      } else {
+        displayList.push(it);
+      }
+    });
+
+    displayList.forEach(function(g) {
       var row = el('div', 'attendees-box');
       row.style.margin = '5px 0'; row.style.fontSize = '13px';
       row.appendChild(el('strong', '', '💃 ' + g.title));
@@ -971,7 +992,7 @@ function buildAttendeesNode(classId, targetDate, showDateTag) {
     } else if (isAuthUser) {
       chip.onclick = function(ev) {
         ev.stopPropagation();
-        openPeerModal(b.clientName, b.photo, b.gender);
+        openPeerModal(b.phone, b.clientName, b.photo, b.gender);
       };
     }
     if (b.photo) {
@@ -1021,18 +1042,12 @@ function openLessonModal(cls) {
 function closeLessonModal() {
   document.getElementById('lessonModal').classList.add('hidden');
 }
+
 function setGroupBy(mode) {
   groupByMode = mode;
   document.getElementById('btnGrpDate').classList.toggle('active', mode === 'date');
   document.getElementById('btnGrpDir').classList.toggle('active', mode === 'dir');
   renderGroupsPool('groupsPoolList', groupByMode);
-}
-
-function setAdmGroupBy(mode) {
-  admGroupByMode = mode;
-  document.getElementById('admBtnGrpDate').classList.toggle('active', mode === 'date');
-  document.getElementById('admBtnGrpDir').classList.toggle('active', mode === 'dir');
-  renderGroupsPool('admGroupsPoolList', admGroupByMode);
 }
 
 function renderGroupsPool(containerId, mode) {
@@ -1086,7 +1101,6 @@ function renderGroupsPool(containerId, mode) {
     return String(ga.time) < String(gb.time) ? -1 : 1;
   });
 
-  var isAdmin = state.user && state.user.role === 'admin';
   var isAuthUser = state.user && state.user.role !== 'guest';
   sortedKeys.forEach(function(k) {
     var g = groups[k];
@@ -1116,10 +1130,8 @@ function renderGroupsPool(containerId, mode) {
     } else {
       g.items.forEach(function(b) {
         var chip = el('span', 'attendee-chip' + (isAuthUser ? ' clickable-client' : ''));
-        if (isAdmin) {
-          chip.onclick = function(ev) { ev.stopPropagation(); openClientQuickModal(b.phone || b.clientName); };
-        } else if (isAuthUser) {
-          chip.onclick = function(ev) { ev.stopPropagation(); openPeerModal(b.clientName, b.photo, b.gender); };
+        if (isAuthUser) {
+          chip.onclick = function(ev) { ev.stopPropagation(); openPeerModal(b.phone, b.clientName, b.photo, b.gender); };
         }
         if (b.photo) { var img = el('img', 'mini-av'); img.src = b.photo; chip.appendChild(img); }
         else chip.appendChild(el('span', 'mini-av', b.clientName.charAt(0)));
@@ -1132,13 +1144,13 @@ function renderGroupsPool(containerId, mode) {
     box.appendChild(card);
   });
 }
-
 function showClientTab(tabId, btn) {
   ['tabSchedule', 'tabGroups', 'tabInd', 'tabTariffs', 'tabProfile'].forEach(function(id) { document.getElementById(id).classList.add('hidden'); });
   document.getElementById(tabId).classList.remove('hidden');
   document.querySelectorAll('#clientNav .nav-item, #teacherNav .nav-item, #guestNav .nav-item').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
 }
+
 function setSchedView(mode) {
   schedViewMode = mode;
   document.getElementById('btnViewList').classList.toggle('active', mode === 'list');
@@ -1158,13 +1170,14 @@ function renderClientAll() {
     renderTariffs();
     return;
   }
-  renderGroupsPool('groupsPoolList', groupByMode);
-  if (role !== 'teacher') {
-    checkNotifications();
-    renderIndList();
-    renderTariffs();
-    renderProfile();
+  if (role === 'teacher') {
+    renderGroupsPool('groupsPoolList', groupByMode);
+    return;
   }
+  checkNotifications();
+  renderIndList();
+  renderTariffs();
+  renderProfile();
 }
 
 function fillClientSelectsAndRestorePrefs() {
@@ -1218,10 +1231,21 @@ function savePrefs() {
   }));
 }
 
+function hasActiveSubscription(u) {
+  if (!u) return false;
+  var bal = Number(u.balance) || 0;
+  if (bal <= 0) return false;
+  var todayYMD = toYMD(new Date());
+  if (u.expireDate && u.expireDate < todayYMD) return false;
+  return true;
+}
+
 function checkNotifications() {
   var box = document.getElementById('clientAlerts');
   if (!box) return;
   box.innerHTML = ''; var u = state.user;
+  var subActive = hasActiveSubscription(u);
+
   if (u.balance === 1) box.appendChild(el('div', 'alert-box', '⚠️ У вас осталось всего 1 занятие по абонементу! Не забудьте продлить.'));
   else if (u.balance < 0) {
     var w = el('div', 'alert-box alert-danger', '💳 У вас ' + Math.abs(u.balance) + ' зан. в кредит. Они спишутся при покупке нового абонемента.');
@@ -1231,6 +1255,34 @@ function checkNotifications() {
     var diff = Math.ceil((new Date(u.expireDate) - new Date()) / (1000 * 60 * 60 * 24));
     if (diff === 1 || diff === 0) box.appendChild(el('div', 'alert-box', '⏳ Ваш абонемент заканчивается ' + fmtDate(u.expireDate) + '!'));
   }
+
+  if (subActive) {
+    var upcomingNotStarted = getNext7DaysSchedule().filter(function(s) { return !s.isPastToday; });
+    var myBookedVisits = (state.visits || []).filter(function(v) { return v.status === 'booked'; });
+    var myPastVisited = (state.visits || []).filter(function(v) { return v.status === 'visited'; });
+
+    var relevantLessons = upcomingNotStarted.filter(function(s) {
+      var isBooked = myBookedVisits.some(function(b) {
+        return b.date === s.date && (b.classId === s.classId || (normStr(b.title) === normStr(s.title) && normStr(b.location) === normStr(s.location)));
+      });
+      if (isBooked) return true;
+      var visitedSameGroup = myPastVisited.some(function(pv) {
+        return normStr(pv.title) === normStr(s.title) && normStr(pv.location) === normStr(s.location);
+      });
+      return visitedSameGroup;
+    });
+
+    if (relevantLessons.length) {
+      var nextDate = relevantLessons.slice(0, 1).shift().date;
+      var sameDateList = relevantLessons.filter(function(x) { return x.date === nextDate; });
+      var desc = sameDateList.map(function(x) { return x.title + ' в ' + x.time + ' (' + x.location + ')'; }).join('; ');
+      var dayWord = sameDateList.slice(0, 1).shift().isToday ? ('сегодня (' + fmtDate(nextDate) + ')') : (fmtDate(nextDate) + ' (' + sameDateList.slice(0, 1).shift().day + ')');
+      var remBox = el('div', 'alert-box', '⏰ Ближайшее занятие для вас ' + dayWord + ': ' + desc);
+      remBox.style.background = '#e3fcef'; remBox.style.borderLeftColor = 'var(--s)'; remBox.style.color = '#005a3c';
+      box.appendChild(remBox);
+    }
+  }
+
   var unread = (state.notifications || []).filter(function(n) { return !n.isRead; });
   var dot = document.getElementById('notifDot');
   if (dot) dot.classList.toggle('hidden', unread.length === 0);
@@ -1370,7 +1422,7 @@ function renderWeekGrid(containerId, lessons) {
 
 function bookGroup(id, date, time, day, title, teacher, loc) {
   var already = (state.visits || []).some(function(v) {
-    return v.status === 'booked' && v.date === date &&
+    return (v.status === 'booked' || v.status === 'visited') && v.date === date &&
       (v.classId === id || (v.time === time && normStr(v.title) === normStr(title) && normStr(v.location) === normStr(loc)));
   });
   if (already) return alert('Вы уже записаны на этот урок!');
@@ -1489,8 +1541,11 @@ function renderProfile() {
   var vkEl = document.getElementById('pVkLink');
   if (u.vk) { vkEl.href = u.vk; vkEl.classList.remove('hidden'); } else { vkEl.classList.add('hidden'); }
   var av = document.getElementById('pAvatarBox'); av.innerHTML = '';
-  if (u.photo) { var img = el('img', 'avatar'); img.src = u.photo; av.appendChild(img); }
-  else av.textContent = u.name.charAt(0);
+  if (u.photo) {
+    var img = el('img', 'avatar clickable-photo'); img.src = u.photo;
+    img.onclick = function() { openFullPhotoModal(u.photo, u.name); };
+    av.appendChild(img);
+  } else av.textContent = u.name.charAt(0);
 
   document.getElementById('eName').value = u.name;
   document.getElementById('ePhone').value = u.phone;
@@ -1594,7 +1649,7 @@ function showAdminTab(tabId, btn) {
 }
 
 function showSchoolSub(subId, btn) {
-  ['subDicts', 'subGroups', 'subClients', 'subStats'].forEach(function(id) { document.getElementById(id).classList.add('hidden'); });
+  ['subDicts', 'subClients', 'subStats'].forEach(function(id) { document.getElementById(id).classList.add('hidden'); });
   document.getElementById(subId).classList.remove('hidden');
   document.querySelectorAll('.sub-tab').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
@@ -1616,8 +1671,6 @@ function renderAdminAlerts() {
 
   var today = new Date(); today.setHours(0, 0, 0, 0);
   var todayYMD = toYMD(today);
-  var tomorrow = new Date(today.getTime()); tomorrow.setDate(today.getDate() + 1);
-  var tomorrowYMD = toYMD(tomorrow);
 
   var overdueVisits = state.visits.filter(function(v) { return v.status === 'booked' && v.date && v.date < todayYMD; });
   if (overdueVisits.length) {
@@ -1634,13 +1687,14 @@ function renderAdminAlerts() {
     box.appendChild(el('div', 'alert-box', '💃 Новые заявки на индивидуальные занятия: ' + pendInd.length + ' шт. (требуют подтверждения или отклонения).'));
   }
 
-  var tmrLessons = getNext7DaysSchedule().filter(function(s) { return s.date === tomorrowYMD; });
-  var tmrInds = state.individual.filter(function(x) { return x.status === 'confirmed' && x.date === tomorrowYMD; });
-  if (tmrLessons.length || tmrInds.length) {
-    var msg = '⏰ Напоминание на завтра (' + fmtDate(tomorrowYMD) + '): ';
-    if (tmrLessons.length) msg += 'групповых уроков — ' + tmrLessons.length + ' шт. ';
-    if (tmrInds.length) msg += 'индивидуальных занятий — ' + tmrInds.length + ' шт.';
-    var infoBox = el('div', 'alert-box', msg);
+  var notStarted = getNext7DaysSchedule().filter(function(s) { return !s.isPastToday; });
+  if (notStarted.length) {
+    var nearestDate = notStarted.slice(0, 1).shift().date;
+    var nearestDayLessons = notStarted.filter(function(s) { return s.date === nearestDate; });
+    var isTodayBatch = (nearestDate === todayYMD);
+    var headWord = isTodayBatch ? ('⏰ Предстоящие уроки сегодня (' + fmtDate(nearestDate) + '): ') : ('⏰ Ближайшие предстоящие уроки (' + fmtDate(nearestDate) + '): ');
+    var details = nearestDayLessons.map(function(x) { return x.time + ' — ' + x.title + ' (' + x.location + ')'; }).join('; ');
+    var infoBox = el('div', 'alert-box', headWord + details);
     infoBox.style.background = '#ede9fe'; infoBox.style.borderLeftColor = 'var(--p)'; infoBox.style.color = 'var(--t)';
     box.appendChild(infoBox);
   }
@@ -1714,7 +1768,17 @@ function renderAdminAll() {
   });
 
   var bBox = document.getElementById('admBookedList'); bBox.innerHTML = '';
-  var booked = state.visits.filter(function(v) { return v.status === 'booked'; });
+  var booked = state.visits
+    .filter(function(v) { return v.status === 'booked'; })
+    .sort(function(a, b) {
+      var da = String(a.date || '9999-99-99');
+      var db = String(b.date || '9999-99-99');
+      if (da !== db) return da < db ? -1 : 1;
+      var ta = String(a.time || '99:99');
+      var tb = String(b.time || '99:99');
+      return ta < tb ? -1 : (ta > tb ? 1 : 0);
+    });
+
   if (!booked.length) { var em = el('div', 'card', 'Нет ожидающих записей'); em.style.color = 'var(--m)'; bBox.appendChild(em); }
   booked.forEach(function(v) {
     var card = el('div', 'card');
@@ -1795,7 +1859,6 @@ function renderAdminAll() {
   });
 
   renderDicts();
-  renderGroupsPool('admGroupsPoolList', admGroupByMode);
   filterSchoolClients();
   fillReportMonths();
   renderAnalytics();
@@ -1982,8 +2045,11 @@ function inspectClient() {
   var card = el('div', 'card');
   var head = el('div', 'row');
   head.style.justifyContent = 'flex-start'; head.style.gap = '12px'; head.style.marginBottom = '8px';
-  if (c.photo) { var im = el('img', 'avatar'); im.src = c.photo; head.appendChild(im); }
-  else head.appendChild(el('div', 'avatar', c.name.charAt(0)));
+  if (c.photo) {
+    var im = el('img', 'avatar clickable-photo'); im.src = c.photo;
+    im.onclick = function() { openFullPhotoModal(c.photo, c.name); };
+    head.appendChild(im);
+  } else head.appendChild(el('div', 'avatar', c.name.charAt(0)));
   var hInfo = el('div');
   var nm = el('strong', 'clickable-client', c.name + ' (+' + c.phone + ')');
   nm.onclick = function() { openClientQuickModal(c.phone); };
