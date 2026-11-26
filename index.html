@@ -69,7 +69,7 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
 </head>
 <body>
 
-<input type="hidden" id="apiUrlField" value="https://script.google.com/macros/s/AKfycbxx6aKbIjlsH-GsoZ--fRe6WF84hPT9jLhqc0y6RbOKSVMdA3VQD6f1lXTp-HAIfHgN/exec">
+<input type="hidden" id="apiUrlField" value="https://script.google.com/macros/s/AKfycbwsmzlkX8xrIspaQS_OhLLaeGI3wH6vdwvYFEE7f4BIhQgWDINeT301tB70bmOqcwS-HA/exec">
 
 <div class="header">
   <div>
@@ -78,7 +78,6 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
   </div>
   <button id="logoutBtn" class="btn-sm hidden" style="background:rgba(255,255,255,0.2);color:#fff" onclick="logout()">Выйти</button>
 </div>
-
 <div id="lessonModal" class="modal-bg hidden" onclick="if(event.target===this)closeLessonModal()">
   <div class="modal-card">
     <div class="row">
@@ -116,6 +115,7 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
   <div id="fullPhotoCaption" style="color:#fff;font-size:15px;font-weight:600;margin-top:12px;text-align:center"></div>
   <div style="color:#b2bec3;font-size:12px;margin-top:4px">Нажмите в любом месте, чтобы закрыть</div>
 </div>
+
 <div class="container">
   <div id="loader" class="card hidden" style="text-align:center;color:var(--p);font-weight:600">Обновление данных...</div>
 
@@ -219,6 +219,7 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
       <h4 id="myPaymentsTitle">Мои оплаты</h4>
       <div id="myPaymentsList"></div>
     </div>
+
     <div id="tabProfile" class="hidden">
       <div class="card">
         <div class="row" style="justify-content:flex-start;gap:12px">
@@ -274,7 +275,6 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
       <div id="myLogList"></div>
     </div>
   </div>
-
   <div id="adminArea" class="hidden">
     <div id="admAlertsBox"></div>
 
@@ -295,6 +295,7 @@ button{background:var(--p);color:#fff;border:none;font-weight:600;cursor:pointer
       <h4>Заявки на индивидуальные занятия</h4>
       <div id="admIndList"></div>
     </div>
+
     <div id="admTabSched" class="hidden">
       <div class="card">
         <h4 style="margin-top:0" id="schedFormTitle">Добавить занятие в расписание</h4>
@@ -446,7 +447,11 @@ window.onload = function() {
     document.getElementById('lPhone').value = c.phone;
     document.getElementById('lPin').value = c.pin;
     if (cachedState) {
-      try { state = JSON.parse(cachedState); openCabinetUI(); } catch (e) {}
+      try {
+        state = JSON.parse(cachedState);
+        if (state.user && !state.user.pin) state.user.pin = c.pin;
+        openCabinetUI();
+      } catch (e) {}
     }
     doLogin(true);
   }
@@ -535,13 +540,16 @@ function handlePhotoUpload(input, previewId, mode) {
   };
   reader.readAsDataURL(file);
 }
-function sendPhotoBg(phone, photoData) {
+
+function sendPhotoBg(phone, photoData, pinOverride) {
   if (!photoData || !phone) return;
   var url = document.getElementById('apiUrlField').value.trim();
+  var creds = JSON.parse(localStorage.getItem('studio_creds') || '{}');
+  var authPin = pinOverride || (state.user && state.user.pin) || creds.pin || '';
   fetch(url, {
     method: 'POST',
     mode: 'no-cors',
-    body: JSON.stringify({ action: 'save_photo', phone: phone, photo: photoData })
+    body: JSON.stringify({ action: 'save_photo', phone: phone, authPhone: phone, authPin: authPin, photo: photoData })
   }).catch(function(){});
 }
 
@@ -550,6 +558,12 @@ function api(params, cb) {
   isBusy = true;
   var url = document.getElementById('apiUrlField').value.trim();
   document.getElementById('loader').classList.remove('hidden');
+
+  var creds = JSON.parse(localStorage.getItem('studio_creds') || '{}');
+  var authPhone = (state.user && state.user.phone && state.user.phone !== 'guest') ? state.user.phone : (creds.phone || '');
+  var authPin = (state.user && state.user.pin) ? state.user.pin : (creds.pin || '');
+  if (authPhone && !params.authPhone) params.authPhone = authPhone;
+  if (authPin && !params.authPin) params.authPin = authPin;
 
   var cbName = 'jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
   var script = document.createElement('script');
@@ -586,7 +600,6 @@ function api(params, cb) {
   script.src = url + (url.indexOf('?') === -1 ? '?' : '&') + query.join('&');
   document.body.appendChild(script);
 }
-
 function openCabinetUI() {
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('guestNav').classList.add('hidden');
@@ -615,6 +628,7 @@ function doLogin(isAuto) {
   if (!phone || !pin) return;
   api({ action: 'login', phone: phone, pin: pin }, function(d) {
     if (d.status === 'success') {
+      if (d.user && !d.user.pin) d.user.pin = pin;
       localStorage.setItem('studio_creds', JSON.stringify({ phone: phone, pin: pin }));
       localStorage.setItem('studio_state_cache', JSON.stringify(d));
       state = d;
@@ -649,13 +663,14 @@ function doRegister() {
   api(p, function(d) {
     alert(d.message);
     if (d.status === 'success') {
-      sendPhotoBg(p.phone, uploadedRegPhoto);
+      sendPhotoBg(p.phone, uploadedRegPhoto, p.pin);
       document.getElementById('lPhone').value = p.phone;
       document.getElementById('lPin').value = p.pin;
       setTimeout(function() { doLogin(false); }, 600);
     }
   });
 }
+
 function el(tag, cls, text) {
   var node = document.createElement(tag);
   if (cls) node.className = cls;
@@ -891,6 +906,7 @@ function openPeerModal(peerPhone, peerName, peerPhoto, peerGender) {
 function closePeerModal() {
   document.getElementById('peerModal').classList.add('hidden');
 }
+
 function getNext7DaysSchedule() {
   var dayNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
   var today = new Date();
@@ -954,7 +970,6 @@ function getNext7DaysSchedule() {
   });
   return result;
 }
-
 function buildAttendeesNode(classId, targetDate, showDateTag) {
   var box = el('div', 'attendees-box');
   var todayYMD = toYMD(new Date());
@@ -1144,6 +1159,7 @@ function renderGroupsPool(containerId, mode) {
     box.appendChild(card);
   });
 }
+
 function showClientTab(tabId, btn) {
   ['tabSchedule', 'tabGroups', 'tabInd', 'tabTariffs', 'tabProfile'].forEach(function(id) { document.getElementById(id).classList.add('hidden'); });
   document.getElementById(tabId).classList.remove('hidden');
@@ -1160,7 +1176,6 @@ function setSchedView(mode) {
   document.getElementById('scheduleGrid').classList.toggle('hidden', mode === 'list');
   renderSchedule();
 }
-
 function renderClientAll() {
   fillClientSelectsAndRestorePrefs();
   renderDayTabs();
@@ -1453,6 +1468,7 @@ function renderIndList() {
     box.appendChild(card);
   });
 }
+
 function getTariffDurationText(t) {
   var cnt = Number(t.count) || 0;
   if (cnt === 16 || String(t.name).indexOf('16') !== -1) return 'Срок: 2 мес. (с даты 1-го визита)';
@@ -1524,7 +1540,6 @@ function buyTariff(id, name, price, count, isUnlim) {
     alert(d.message); doLogin(true);
   });
 }
-
 function renderProfile() {
   var u = state.user;
   var prefs = JSON.parse(localStorage.getItem('studio_prefs_' + u.phone) || '{}');
@@ -1616,6 +1631,7 @@ function markAllNotifsRead() {
     renderProfile();
   });
 }
+
 function toggleEditProfile() { document.getElementById('editProfileForm').classList.toggle('hidden'); }
 
 function saveProfile() {
@@ -1632,7 +1648,7 @@ function saveProfile() {
   api(p, function(d) {
     alert(d.message);
     if (d.status === 'success') {
-      sendPhotoBg(p.newPhone, uploadedEditPhoto);
+      sendPhotoBg(p.newPhone, uploadedEditPhoto, p.pin);
       localStorage.setItem('studio_creds', JSON.stringify({ phone: p.newPhone, pin: p.pin }));
       document.getElementById('lPhone').value = p.newPhone;
       document.getElementById('lPin').value = p.pin;
@@ -1699,7 +1715,6 @@ function renderAdminAlerts() {
     box.appendChild(infoBox);
   }
 }
-
 function updatePickedCounter() {
   var cnt = Object.keys(pickedClientsMap).length;
   var elCnt = document.getElementById('admPickedCounter');
@@ -1758,6 +1773,7 @@ document.addEventListener('click', function(e) {
   var drop = document.getElementById('admClientDropdown');
   if (wrap && drop && !wrap.contains(e.target)) drop.classList.add('hidden');
 });
+
 function renderAdminAll() {
   renderAdminAlerts();
   filterAdminClients(false);
@@ -1864,10 +1880,7 @@ function renderAdminAll() {
   renderAnalytics();
 }
 function renderAdminSched() {
-  if (admSchedViewMode === 'grid') {
-    renderWeekGrid('admSchedGrid', getNext7DaysSchedule());
-    return;
-  }
+  if (admSchedViewMode === 'grid') { renderWeekGrid('admSchedGrid', getNext7DaysSchedule()); return; }
   var schedBox = document.getElementById('admSchedList'); schedBox.innerHTML = '';
   state.schedule.forEach(function(s) {
     var card = el('div', 'card');
@@ -1919,8 +1932,7 @@ function delTariff(id) { if (confirm('Удалить этот абонемент
 function renderDicts() {
   var tBox = document.getElementById('teachersListBox'); tBox.innerHTML = '';
   state.teachers.forEach(function(t) {
-    var r = el('div', 'row'); r.style.padding = '6px 0'; r.style.borderBottom = '1px solid #eee';
-    r.appendChild(el('span', '', t.name));
+    var r = el('div', 'row'); r.style.padding = '6px 0'; r.style.borderBottom = '1px solid #eee'; r.appendChild(el('span', '', t.name));
     var br = el('div', 'row');
     var b1 = el('button', 'btn-o btn-sm', 'Изм.'); b1.type = 'button'; b1.onclick = function() { editDictItem('teacher', t.teacherId, t.name); };
     var b2 = el('button', 'btn-d btn-sm', 'Х'); b2.type = 'button'; b2.onclick = function() { delDictItem('teacher', t.teacherId); };
@@ -1928,8 +1940,7 @@ function renderDicts() {
   });
   var dBox = document.getElementById('dirsListBox'); dBox.innerHTML = '';
   state.directions.forEach(function(d) {
-    var r = el('div', 'row'); r.style.padding = '6px 0'; r.style.borderBottom = '1px solid #eee';
-    r.appendChild(el('span', '', d.name));
+    var r = el('div', 'row'); r.style.padding = '6px 0'; r.style.borderBottom = '1px solid #eee'; r.appendChild(el('span', '', d.name));
     var br = el('div', 'row');
     var b1 = el('button', 'btn-o btn-sm', 'Изм.'); b1.type = 'button'; b1.onclick = function() { editDictItem('direction', d.dirId, d.name); };
     var b2 = el('button', 'btn-d btn-sm', 'Х'); b2.type = 'button'; b2.onclick = function() { delDictItem('direction', d.dirId); };
@@ -1945,10 +1956,7 @@ function sendBroadcastNews() {
   var txt = inp ? inp.value.trim() : '';
   if (!txt) return alert('Введите текст объявления или новости');
   if (!confirm('Отправить это объявление всем пользователям студии?')) return;
-  api({ action: 'broadcast_news', text: txt }, function(d) {
-    alert(d.message);
-    if (d.status === 'success') inp.value = '';
-  });
+  api({ action: 'broadcast_news', text: txt }, function(d) { alert(d.message); if (d.status === 'success') inp.value = ''; });
 }
 
 function adminManualVisit() {
@@ -1956,23 +1964,8 @@ function adminManualVisit() {
   if (!phones.length) return alert('Отметьте галочкой хотя бы одного ученика в списке');
   var names = phones.map(function(ph) { return pickedClientsMap[ph]; });
   var sVal = document.getElementById('admManualClass').value.split('|');
-
-  api({
-    action: 'confirm_visit_batch',
-    phones: phones.join(','),
-    names: names.join('|'),
-    classId: sVal.shift() || '',
-    date: sVal.shift() || '',
-    time: sVal.shift() || '',
-    day: sVal.shift() || '',
-    title: sVal.shift() || '',
-    teacher: sVal.shift() || '',
-    location: sVal.shift() || ''
-  }, function(d) {
-    alert(d.message);
-    pickedClientsMap = {};
-    document.getElementById('admClientSearch').value = '';
-    doLogin(true);
+  api({ action: 'confirm_visit_batch', phones: phones.join(','), names: names.join('|'), classId: sVal.shift() || '', date: sVal.shift() || '', time: sVal.shift() || '', day: sVal.shift() || '', title: sVal.shift() || '', teacher: sVal.shift() || '', location: sVal.shift() || '' }, function(d) {
+    alert(d.message); pickedClientsMap = {}; document.getElementById('admClientSearch').value = ''; doLogin(true);
   });
 }
 
@@ -1983,55 +1976,30 @@ function rejectInd(indId) { if (confirm('Отклонить заявку на и
 function confirmPay(payId) { api({ action: 'confirm_payment', payId: payId }, function(d) { alert(d.message); doLogin(true); }); }
 function rejectPay(payId) { if (confirm('Отклонить эту оплату? Абонемент начислен не будет.')) api({ action: 'reject_payment', payId: payId }, function(d) { alert(d.message); doLogin(true); }); }
 function extendClientSub(phone) {
-  var inp = document.getElementById('admExtendDays');
-  var days = Number(inp ? inp.value : 0);
+  var days = Number((document.getElementById('admExtendDays') || {}).value || 0);
   if (!days || days <= 0) return alert('Укажите количество дней для продления (например: 7)');
-  api({ action: 'extend_sub', phone: phone, days: days }, function(d) {
-    alert(d.message);
-    if (d.status === 'success') doLogin(true);
-  });
+  api({ action: 'extend_sub', phone: phone, days: days }, function(d) { alert(d.message); if (d.status === 'success') doLogin(true); });
 }
 
 function assignTariffToClient(phone) {
-  var sel = document.getElementById('admAssignTariffSel');
-  var tariffId = sel ? sel.value : '';
+  var tariffId = (document.getElementById('admAssignTariffSel') || {}).value || '';
   if (!tariffId) return alert('Выберите абонемент из списка');
   var tObj = (state.tariffs || []).find(function(t) { return t.tariffId === tariffId; });
-  var tName = tObj ? tObj.name : 'выбранный абонемент';
-  if (!confirm('Начислить ученику «' + tName + '»?')) return;
-
-  api({ action: 'admin_assign_tariff', phone: phone, tariffId: tariffId }, function(d) {
-    alert(d.message);
-    if (d.status === 'success') doLogin(true);
-  });
+  if (!confirm('Начислить ученику «' + (tObj ? tObj.name : 'выбранный абонемент') + '»?')) return;
+  api({ action: 'admin_assign_tariff', phone: phone, tariffId: tariffId }, function(d) { alert(d.message); if (d.status === 'success') doLogin(true); });
 }
 
 function filterSchoolClients() {
-  var inp = document.getElementById('admSchoolClientSearch');
-  var sel = document.getElementById('admInspectSelect');
-  if (!sel) return;
-  var q = normStr(inp ? inp.value : '');
+  var sel = document.getElementById('admInspectSelect'); if (!sel) return;
+  var q = normStr((document.getElementById('admSchoolClientSearch') || {}).value || '');
   var prevVal = sel.value;
-
-  var sortedClients = (state.clients || [])
-    .filter(function(c) { return c.role === 'client'; })
+  var sortedClients = (state.clients || []).filter(function(c) { return c.role === 'client'; })
     .sort(function(a, b) { return normStr(a.name).localeCompare(normStr(b.name), 'ru'); })
-    .filter(function(c) {
-      return !q || normStr(c.name).indexOf(q) !== -1 || String(c.phone).indexOf(q) !== -1;
-    });
-
+    .filter(function(c) { return !q || normStr(c.name).indexOf(q) !== -1 || String(c.phone).indexOf(q) !== -1; });
   sel.innerHTML = '';
-  if (!sortedClients.length) {
-    addOpt(sel, '', 'Совпадений не найдено');
-    document.getElementById('admInspectCard').innerHTML = '';
-    return;
-  }
-  sortedClients.forEach(function(c) {
-    addOpt(sel, c.phone, c.name + ' (+' + c.phone + ')');
-  });
-  if (prevVal && sortedClients.some(function(c) { return c.phone === prevVal; })) {
-    sel.value = prevVal;
-  }
+  if (!sortedClients.length) { addOpt(sel, '', 'Совпадений не найдено'); document.getElementById('admInspectCard').innerHTML = ''; return; }
+  sortedClients.forEach(function(c) { addOpt(sel, c.phone, c.name + ' (+' + c.phone + ')'); });
+  if (prevVal && sortedClients.some(function(c) { return c.phone === prevVal; })) sel.value = prevVal;
   inspectClient();
 }
 
@@ -2043,76 +2011,51 @@ function inspectClient() {
   var box = document.getElementById('admInspectCard'); box.innerHTML = '';
 
   var card = el('div', 'card');
-  var head = el('div', 'row');
-  head.style.justifyContent = 'flex-start'; head.style.gap = '12px'; head.style.marginBottom = '8px';
-  if (c.photo) {
-    var im = el('img', 'avatar clickable-photo'); im.src = c.photo;
-    im.onclick = function() { openFullPhotoModal(c.photo, c.name); };
-    head.appendChild(im);
-  } else head.appendChild(el('div', 'avatar', c.name.charAt(0)));
+  var head = el('div', 'row'); head.style.justifyContent = 'flex-start'; head.style.gap = '12px'; head.style.marginBottom = '8px';
+  if (c.photo) { var im = el('img', 'avatar clickable-photo'); im.src = c.photo; im.onclick = function() { openFullPhotoModal(c.photo, c.name); }; head.appendChild(im); }
+  else head.appendChild(el('div', 'avatar', c.name.charAt(0)));
   var hInfo = el('div');
-  var nm = el('strong', 'clickable-client', c.name + ' (+' + c.phone + ')');
-  nm.onclick = function() { openClientQuickModal(c.phone); };
+  var nm = el('strong', 'clickable-client', c.name + ' (+' + c.phone + ')'); nm.onclick = function() { openClientQuickModal(c.phone); };
   hInfo.appendChild(nm);
   hInfo.appendChild(el('div', '', 'Тариф: ' + c.tariffName + ' (ID: ' + (c.subId || '—') + ')'));
   hInfo.appendChild(el('div', '', 'Остаток: ' + (c.balance === 999 ? 'Безлимит' : c.balance + ' зан.') + ' • Посещено: ' + c.usedCount));
-  head.appendChild(hInfo);
-  card.appendChild(head);
-
+  head.appendChild(hInfo); card.appendChild(head);
   card.appendChild(el('div', '', 'Срок действия: ' + (c.startDate ? fmtDate(c.startDate) : '—') + ' по ' + (c.expireDate ? fmtDate(c.expireDate) : '—')));
 
   var extRow = el('div', 'row'); extRow.style.marginTop = '8px';
-  var extInp = document.createElement('input');
-  extInp.type = 'number'; extInp.id = 'admExtendDays'; extInp.placeholder = 'Дней продления'; extInp.style.marginTop = '0';
-  var extBtn = el('button', 'btn-s btn-sm', 'Продлить срок'); extBtn.type = 'button';
-  extBtn.onclick = function() { extendClientSub(c.phone); };
-  extRow.appendChild(extInp); extRow.appendChild(extBtn);
-  card.appendChild(extRow);
+  var extInp = document.createElement('input'); extInp.type = 'number'; extInp.id = 'admExtendDays'; extInp.placeholder = 'Дней продления'; extInp.style.marginTop = '0';
+  var extBtn = el('button', 'btn-s btn-sm', 'Продлить срок'); extBtn.type = 'button'; extBtn.onclick = function() { extendClientSub(c.phone); };
+  extRow.appendChild(extInp); extRow.appendChild(extBtn); card.appendChild(extRow);
 
   var assignRow = el('div', 'row'); assignRow.style.marginTop = '8px';
-  var assignSel = document.createElement('select');
-  assignSel.id = 'admAssignTariffSel'; assignSel.style.marginTop = '0';
-  (state.tariffs || []).forEach(function(t) {
-    addOpt(assignSel, t.tariffId, t.name + ' (' + t.price + ' ₽)');
-  });
-  var assignBtn = el('button', 'btn-sm', 'Выдать абонемент'); assignBtn.type = 'button';
-  assignBtn.onclick = function() { assignTariffToClient(c.phone); };
-  assignRow.appendChild(assignSel); assignRow.appendChild(assignBtn);
-  card.appendChild(assignRow);
+  var assignSel = document.createElement('select'); assignSel.id = 'admAssignTariffSel'; assignSel.style.marginTop = '0';
+  (state.tariffs || []).forEach(function(t) { addOpt(assignSel, t.tariffId, t.name + ' (' + t.price + ' ₽)'); });
+  var assignBtn = el('button', 'btn-sm', 'Выдать абонемент'); assignBtn.type = 'button'; assignBtn.onclick = function() { assignTariffToClient(c.phone); };
+  assignRow.appendChild(assignSel); assignRow.appendChild(assignBtn); card.appendChild(assignRow);
 
-  card.appendChild(el('hr'));
-  card.appendChild(el('strong', '', 'История посещений (' + hist.length + '):'));
+  card.appendChild(el('hr')); card.appendChild(el('strong', '', 'История посещений (' + hist.length + '):'));
   hist.forEach(function(h) {
     var row = el('div', '', '• ' + fmtDate(h.date) + ' (' + (h.day || '—') + (h.time ? ' ' + h.time : '') + ') — ' + h.title + ' [' + (h.subId || '—') + ', старт: ' + (h.subStart ? fmtDate(h.subStart) : '—') + ']');
-    row.style.fontSize = '12px'; row.style.marginTop = '4px';
-    card.appendChild(row);
+    row.style.fontSize = '12px'; row.style.marginTop = '4px'; card.appendChild(row);
   });
-
   if (logs.length) {
-    card.appendChild(el('hr'));
-    card.appendChild(el('strong', '', 'Журнал событий по клиенту (' + logs.length + '):'));
+    card.appendChild(el('hr')); card.appendChild(el('strong', '', 'Журнал событий по клиенту (' + logs.length + '):'));
     logs.slice(0, 20).forEach(function(lg) {
       var lrow = el('div', '', '• ' + fmtDate(lg.date) + ' — ' + fmtTextDates(lg.text));
-      lrow.style.fontSize = '12px'; lrow.style.color = 'var(--m)'; lrow.style.marginTop = '3px';
-      card.appendChild(lrow);
+      lrow.style.fontSize = '12px'; lrow.style.color = 'var(--m)'; lrow.style.marginTop = '3px'; card.appendChild(lrow);
     });
   }
   box.appendChild(card);
 }
 
 function fillReportMonths() {
-  var sel = document.getElementById('admReportMonth');
-  if (!sel) return;
+  var sel = document.getElementById('admReportMonth'); if (!sel) return;
   var curMonth = toYMD(new Date()).slice(0, 7);
-  var monthsSet = {};
-  monthsSet[curMonth] = true;
+  var monthsSet = {}; monthsSet[curMonth] = true;
   (state.visits || []).forEach(function(v) { if (v.date && v.date.length >= 7) monthsSet[v.date.slice(0, 7)] = true; });
   (state.payments || []).forEach(function(p) { if (p.date && p.date.length >= 7) monthsSet[p.date.slice(0, 7)] = true; });
-
-  var sorted = Object.keys(monthsSet).sort().reverse();
-  var prevVal = sel.value;
-  sel.innerHTML = '';
-  sorted.forEach(function(ym) {
+  var prevVal = sel.value; sel.innerHTML = '';
+  Object.keys(monthsSet).sort().reverse().forEach(function(ym) {
     var labelYm = ym.indexOf('-') !== -1 ? ym.split('-').reverse().join('.') : ym;
     addOpt(sel, ym, (ym === curMonth ? 'Текущий месяц: ' : 'Архив: ') + labelYm);
   });
@@ -2123,28 +2066,21 @@ function renderAnalytics() {
   var sel = document.getElementById('admReportMonth');
   var ym = (sel && sel.value) ? sel.value : toYMD(new Date()).slice(0, 7);
   var labelYm = ym.indexOf('-') !== -1 ? ym.split('-').reverse().join('.') : ym;
-
   var visited = state.visits.filter(function(v) { return v.status === 'visited' && v.date && v.date.indexOf(ym) === 0; });
   var monthPays = state.payments.filter(function(p) { return p.status === 'confirmed' && p.date && p.date.indexOf(ym) === 0; });
   var revenue = monthPays.reduce(function(sum, p) { return sum + (Number(p.price) || 0); }, 0);
-
-  var styles = {}, locs = { 'Красное Село': 0, 'Кировский завод': 0 };
+  var styles = {}, locs = { 'Красное Село': 0, 'Кировский завод': 0 }, clientCounts = {};
   visited.forEach(function(v) {
     styles[v.title] = (styles[v.title] || 0) + 1;
     if (normStr(v.location) === normStr('Красное Село')) locs['Красное Село']++;
     else if (normStr(v.location) === normStr('Кировский завод')) locs['Кировский завод']++;
-  });
-  var popular = Object.keys(styles).sort(function(a, b) { return styles[b] - styles[a]; });
-  var debtors = state.clients.filter(function(c) { return c.balance <= 0 && c.role === 'client'; }).length;
-
-  var clientCounts = {};
-  visited.forEach(function(v) {
     var key = (v.clientName || 'Ученик') + ' (+' + v.phone + ')';
     clientCounts[key] = (clientCounts[key] || 0) + 1;
   });
-  var topClients = Object.keys(clientCounts).sort(function(a, b) { return clientCounts[b] - clientCounts[a]; });
-  var topLeader = topClients.slice(0, 1).shift();
+  var popular = Object.keys(styles).sort(function(a, b) { return styles[b] - styles[a]; });
+  var topLeader = Object.keys(clientCounts).sort(function(a, b) { return clientCounts[b] - clientCounts[a]; }).slice(0, 1).shift();
   var topClientText = topLeader ? (topLeader + ' — ' + clientCounts[topLeader] + ' виз.') : 'нет данных за месяц';
+  var debtors = state.clients.filter(function(c) { return c.balance <= 0 && c.role === 'client'; }).length;
 
   var box = document.getElementById('admStatsBox'); box.innerHTML = '';
   var c1 = el('div', 'card'); c1.appendChild(el('strong', '', 'Итоги работы за ' + labelYm));
